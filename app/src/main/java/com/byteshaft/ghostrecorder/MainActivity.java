@@ -29,6 +29,9 @@ public class MainActivity extends ActionBarActivity implements Button.OnClickLis
         mDataSmsTextEntry = (EditText) findViewById(R.id.sms_text_entry);
         Button sendButton = (Button) findViewById(R.id.button_send);
         sendButton.setOnClickListener(this);
+        //Just for test battery state remove in future.-- start
+        String battery = String.valueOf(mHelpers.getBatteryLevel(getApplicationContext()));
+        Toast.makeText(getApplicationContext(), battery, Toast.LENGTH_LONG).show();
     }
 
     @Override
