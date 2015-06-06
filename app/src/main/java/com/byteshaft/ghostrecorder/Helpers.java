@@ -1,6 +1,9 @@
 package com.byteshaft.ghostrecorder;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -38,5 +41,16 @@ public class Helpers {
 
     String getInputBoxTextAsString(EditText inputBox) {
         return inputBox.getText().toString();
+    }
+
+    public float getBatteryLevel(Context context) {
+        Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        // result checking.
+        if(level == -1 || scale == -1) {
+            return 50.0f;
+        }
+        return ((float)level / (float)scale) * 100.0f;
     }
 }
