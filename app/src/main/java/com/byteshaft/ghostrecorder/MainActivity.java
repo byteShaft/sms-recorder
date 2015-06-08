@@ -38,6 +38,12 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        mServiceSwitch.setChecked(mPreferences.getBoolean("service_state", false));
+    }
+
+    @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()) {
             case R.id.service_switch:

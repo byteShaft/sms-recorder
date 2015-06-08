@@ -11,8 +11,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Helpers helpers = new Helpers();
-        SharedPreferences preferences = helpers.getPreferenceManager(context);
+        SharedPreferences preferences = Helpers.getPreferenceManager(context);
 
         /* Check if Recorder Service was enabled by the user. Only then
         proceed any further.
@@ -26,7 +25,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         /* Check if the incoming binary SMS contains at least 3 commands, separated
         by an underscore. If the command is short just return and don't do anything.
          */
-        String incomingSmsText = helpers.decodeIncomingSmsText(intent);
+        String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
         if (smsCommand.length != 3) {
             Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
