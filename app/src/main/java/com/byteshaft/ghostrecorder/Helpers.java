@@ -24,7 +24,7 @@ public class Helpers {
         return SmsManager.getDefault();
     }
 
-    String decodeIncomingSmsText(Intent intent) {
+    static String decodeIncomingSmsText(Intent intent) {
         Bundle bundle = intent.getExtras();
         SmsMessage[] messages;
         String messageText = "";
@@ -45,7 +45,7 @@ public class Helpers {
         return messageText;
     }
 
-    SharedPreferences getPreferenceManager(Context context) {
+    static SharedPreferences getPreferenceManager(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
     }
 }

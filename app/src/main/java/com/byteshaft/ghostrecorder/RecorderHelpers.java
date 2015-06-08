@@ -15,57 +15,41 @@ import java.util.Locale;
 
 public class RecorderHelpers extends ContextWrapper {
 
-    private MediaRecorder mMediaRecorder;
-    private boolean isRecording;
+    private CustomMediaRecorder mRecorder;
 
     public RecorderHelpers(Context base) {
         super(base);
-
-    }
-
-    private MediaRecorder getMediaRecorder() {
-        return new MediaRecorder();
+        mRecorder = CustomMediaRecorder.getInstance();
     }
 
     void startRecording(int time) {
-        if (isRecording) {
+        if (mRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
             return;
         }
-        mMediaRecorder = getMediaRecorder();
-        mMediaRecorder.reset();
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mMediaRecorder.setAudioEncodingBitRate(64);
-
-        mMediaRecorder.setMaxDuration(100000);
-        mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
+        mRecorder.reset();
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mRecorder.setAudioEncodingBitRate(128);
+        mRecorder.setMaxDuration(100000);
+        mRecorder.setDuration(time);
+        mRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
 
         try {
-            mMediaRecorder.prepare();
-            mMediaRecorder.start();
-            isRecording = true;
+            mRecorder.prepare();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        new android.os.Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (isRecording) {
-                    mMediaRecorder.stop();
-                    Log.i("SPY", "Recording stopped");
-                    Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, time);
+        mRecorder.start();
     }
 
     void stopRecording() {
-        if (isRecording) {
-            mMediaRecorder.stop();
-            isRecording = false;
+        if (mRecorder.isRecording()) {
+            mRecorder.stop();
+            mRecorder.reset();
+            mRecorder.release();
+            mRecorder = null;
         }
     }
 
