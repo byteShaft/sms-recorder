@@ -49,7 +49,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (action.equalsIgnoreCase("start")) {
             smsServiceIntent.putExtra("ACTION", "start");
         } else if (action.equalsIgnoreCase("stop")) {
-            AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+            if (AudioRecorderService.instance != null) {
+                AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+            }
             return;
         } else {
             Log.e(AppGlobals.LOG_TAG, "Invalid action.");
