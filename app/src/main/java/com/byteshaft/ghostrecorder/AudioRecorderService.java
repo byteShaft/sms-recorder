@@ -28,11 +28,11 @@ public class AudioRecorderService extends Service {
         if (action.equalsIgnoreCase("start")) {
             mRecorderHelpers.startRecording(recordTime);
             Toast.makeText(getApplicationContext(), "Started", Toast.LENGTH_SHORT).show();
-            Log.i("SPY", "Recording started");
+            Log.i(AppGlobals.LOG_TAG, "Recording started");
         } else if (action.equalsIgnoreCase("stop")) {
             mRecorderHelpers.stopRecording();
             Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();
-            Log.i("SPY", "Recording stopped");
+            Log.i(AppGlobals.LOG_TAG, "Recording stopped");
         }
 
         return START_NOT_STICKY;

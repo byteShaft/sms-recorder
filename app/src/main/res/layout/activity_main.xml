@@ -44,5 +44,4 @@
             android:onClick="onClick" />
 
     </LinearLayout>
-
 </LinearLayout>

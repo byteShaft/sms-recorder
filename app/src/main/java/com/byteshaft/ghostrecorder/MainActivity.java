@@ -17,7 +17,8 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements Switch.OnCheckedChangeListener, View.OnClickListener {
+public class MainActivity extends Activity implements Switch.OnCheckedChangeListener,
+        View.OnClickListener {
 
     private Switch mServiceSwitch;
     private Button mButtonOk;
@@ -41,7 +42,6 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
         switch (buttonView.getId()) {
             case R.id.service_switch:
                 mButtonOk.setEnabled(isChecked);
-//                enableRecorderService(isChecked);
         }
     }
 
