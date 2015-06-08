@@ -29,7 +29,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         String incomingSmsText = helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
         if (smsCommand.length != 3) {
-//            Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
+            Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
             return;
         }
 
@@ -42,7 +42,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
         String currentPassword = preferences.getString("service_password", null);
         if (!password.equals(currentPassword)) {
-//            Log.e(AppGlobals.LOG_TAG, "Wrong password.");
+            Log.e(AppGlobals.LOG_TAG, "Wrong password.");
             // TODO: Send sms to the sender for wrong password.
             return;
         }
@@ -53,7 +53,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             AudioRecorderService.instance.mRecorderHelpers.stopRecording();
             return;
         } else {
-//            Log.e(AppGlobals.LOG_TAG, "Invalid action.");
+            Log.e(AppGlobals.LOG_TAG, "Invalid action.");
             // TODO: Send sms to the sender for wrong action.
             return;
         }

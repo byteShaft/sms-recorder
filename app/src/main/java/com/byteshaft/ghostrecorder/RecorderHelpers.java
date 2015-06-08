@@ -40,7 +40,7 @@ public class RecorderHelpers extends ContextWrapper {
         mMediaRecorder.setAudioEncodingBitRate(64);
 
         mMediaRecorder.setMaxDuration(100000);
-        mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp()+".aac");
+        mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
 
         try {
             mMediaRecorder.prepare();
