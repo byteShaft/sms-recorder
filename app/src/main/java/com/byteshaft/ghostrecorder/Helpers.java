@@ -1,11 +1,10 @@
 package com.byteshaft.ghostrecorder;
 
-import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.telephony.SmsManager;
-import android.text.TextUtils;
+import android.telephony.SmsMessage;
 import android.util.Log;
-import android.widget.EditText;
-import android.widget.Toast;
 
 public class Helpers {
 
@@ -28,15 +27,31 @@ public class Helpers {
         );
     }
 
-    boolean isInputBoxEmpty(EditText inputBox) {
-        return TextUtils.isEmpty(inputBox.getText().toString());
-    }
+    String decodeIncomingSmsText(Intent intent) {
+        Bundle bundle = intent.getExtras();
+        SmsMessage[] messages;
+        String str = "";
 
-    void makeLongToast(Context context, String text) {
-        Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_LONG).show();
-    }
+        if (bundle != null) {
+            Object[] pdus = (Object[]) bundle.get("pdus");
+            messages = new SmsMessage[pdus.length];
 
-    String getInputBoxTextAsString(EditText inputBox) {
-        return inputBox.getText().toString();
+            // For every SMS message received (although multipart is not supported with binary)
+            for (int i = 0; i < messages.length; i++) {
+                byte[] data;
+
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+
+                // Return the User Data section minus the
+                // User Data Header (UDH) (if there is any UDH at all)
+                data = messages[i].getUserData();
+
+                for (byte aData : data) {
+                    str += Character.toString((char) aData);
+                }
+            }
+        }
+
+        return str;
     }
 }

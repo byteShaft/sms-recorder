@@ -1,4 +1,4 @@
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,35 +11,10 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <EditText
-        android:id="@+id/sms_text_entry"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:inputType="text"
-        android:layout_marginBottom="10dp"
-        android:hint="Enter a command here" />
-
-    <EditText
-        android:id="@+id/port_number_entry"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:inputType="number"
-        android:text="6742" />
-
-    <EditText
-        android:id="@+id/outgoing_number_entry"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:inputType="number"
-        android:hint="Enter receipt address" />
-
-    <Button
-        android:id="@+id/button_send"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Send command"
-        android:layout_gravity="right" />
+        android:text="Placeholder"
+        android:layout_centerInParent="true"/>
 
-</LinearLayout>
+</RelativeLayout>
