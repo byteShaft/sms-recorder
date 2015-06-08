@@ -32,8 +32,6 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
         mButtonOk = (Button) findViewById(R.id.button_ok);
         mPasswordEntry = (EditText) findViewById(R.id.password_entry);
         mPreferences = getPreferenceManager();
-        RecorderHelpers mRecorderHelpers = new RecorderHelpers(getApplicationContext());
-        mRecorderHelpers.startRecording(10000);
     }
 
     @Override
