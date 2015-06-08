@@ -58,6 +58,10 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         }
 
         // TODO: implement code or listener for battery level change.
+        // This code WORKS. just need to hook some logic into BatteryChargeChangeListener class.
+//        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+//        BroadcastReceiver batteryListener = new BatteryChargeChangeListener();
+//        context.getApplicationContext().registerReceiver(batteryListener, filter);
 
         smsServiceIntent.putExtra("PASSWORD", password);
         smsServiceIntent.putExtra("RECORD_TIME", time);
