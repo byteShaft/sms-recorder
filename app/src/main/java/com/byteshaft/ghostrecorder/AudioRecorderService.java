@@ -13,11 +13,6 @@ public class AudioRecorderService extends Service {
     RecorderHelpers mRecorderHelpers;
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         instance = this;
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
@@ -36,5 +31,10 @@ public class AudioRecorderService extends Service {
         }
 
         return START_NOT_STICKY;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 }
