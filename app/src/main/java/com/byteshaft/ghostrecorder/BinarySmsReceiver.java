@@ -35,7 +35,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         String battery_level = smsCommand[3];
         String response = smsCommand[4];
 
-        if (!smsCommand[0].equals(currentPassword)) {
+        if (!password.equals(currentPassword)) {
             Log.e(LOG_TAG, "Wrong password.");
             return;
         }
