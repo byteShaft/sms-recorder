@@ -1,31 +1,67 @@
 package com.byteshaft.ghostrecorder;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.media.MediaRecorder;
 import android.os.Environment;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
 
-public class RecorderHelpers {
+public class RecorderHelpers extends ContextWrapper {
+
+    private MediaRecorder mMediaRecorder;
+    private boolean isRecording;
+
+    public RecorderHelpers(Context base) {
+        super(base);
+    }
 
     private MediaRecorder getMediaRecorder() {
         return new MediaRecorder();
     }
 
     void startRecording(int time) {
-        MediaRecorder mediaRecorder = getMediaRecorder();
-        mediaRecorder.reset();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setMaxDuration(time);
-        mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + "test.aac");
+        if (isRecording) {
+            Log.i("SPY", "Recording already in progress");
+            return;
+        }
+        mMediaRecorder = getMediaRecorder();
+        mMediaRecorder.reset();
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mMediaRecorder.setAudioEncodingBitRate(64);
+
+        mMediaRecorder.setMaxDuration(100000);
+        mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + "test.aac");
 
         try {
-            mediaRecorder.prepare();
-            mediaRecorder.start();
+            mMediaRecorder.prepare();
+            mMediaRecorder.start();
+            isRecording = true;
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        new android.os.Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (isRecording) {
+                    mMediaRecorder.stop();
+                    Log.i("SPY", "Recording stopped");
+                    Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, time);
+    }
+
+    void stopRecording() {
+        if (isRecording) {
+            mMediaRecorder.stop();
+            isRecording = false;
         }
     }
 

@@ -1,7 +1,10 @@
 package com.byteshaft.ghostrecorder;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -53,5 +56,9 @@ public class Helpers {
         }
 
         return str;
+    }
+
+    SharedPreferences getPreferenceManager(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context);
     }
 }
