@@ -8,6 +8,6 @@ public class PhoneBootStateReader extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        // TODO: Check here if Service setting was enabled.
     }
 }

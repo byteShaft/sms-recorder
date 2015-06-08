@@ -9,21 +9,25 @@ import android.widget.Toast;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
-    private String currentPassword;
-
     @Override
     public void onReceive(Context context, Intent intent) {
         Helpers helpers = new Helpers();
         SharedPreferences preferences = helpers.getPreferenceManager(context);
-        boolean serviceState = preferences.getBoolean("service_state", false);
-        if (!serviceState) {
+
+        /* Check if Recorder Service was enabled by the user. Only then
+        proceed any further.
+         */
+        boolean isServiceEnabled = preferences.getBoolean("service_state", false);
+        if (!isServiceEnabled) {
             Toast.makeText(context, "Service is disabled", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String incomingCommand = helpers.decodeIncomingSmsText(intent);
-        String[] smsCommand = incomingCommand.split("_");
-
+        /* Check if the incoming binary SMS contains at least 3 commands, separated
+        by an underscore. If the command is short just return and don't do anything.
+         */
+        String incomingSmsText = helpers.decodeIncomingSmsText(intent);
+        String[] smsCommand = incomingSmsText.split("_");
         if (smsCommand.length != 3) {
             Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
             return;
@@ -35,15 +39,11 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         String password = smsCommand[0];
         String action = smsCommand[1];
         String time = smsCommand[2];
-//        String battery_level = smsCommand[3];
-//        String response = smsCommand[4];
 
-        currentPassword = preferences.getString("service_password", null);
+        String currentPassword = preferences.getString("service_password", null);
         if (!password.equals(currentPassword)) {
             Log.e(AppGlobals.LOG_TAG, "Wrong password.");
-//            if (response.equalsIgnoreCase("yes")) {
-//                // FIXME: Send sms to the sender for wrong password
-//            }
+            // TODO: Send sms to the sender for wrong password.
             return;
         }
 
@@ -53,23 +53,15 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             AudioRecorderService.instance.mRecorderHelpers.stopRecording();
             return;
         } else {
-            Log.e(AppGlobals.LOG_TAG, "Invalid command.");
-//            if (response.equalsIgnoreCase("yes")) {
-//                // FIXME: Send sms to the sender for wrong command
-//            }
+            Log.e(AppGlobals.LOG_TAG, "Invalid action.");
+            // TODO: Send sms to the sender for wrong action.
             return;
         }
-
-//        String[] realTime = time.split(":");
-//        String recordingLength = realTime[0];
-//        String recordingTime = realTime[1];
 
         // TODO: implement code or listener for battery level change.
 
         smsServiceIntent.putExtra("PASSWORD", password);
         smsServiceIntent.putExtra("RECORD_TIME", time);
-//        smsServiceIntent.putExtra("BATTERY_LEVEL", battery_level);
-//        smsServiceIntent.putExtra("RESPONSE", response);
         context.startService(smsServiceIntent);
     }
 }
