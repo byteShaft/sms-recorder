@@ -13,7 +13,7 @@ public class Helpers {
 
     void sendDataSms(String phoneNumber, String port, String smsCommand) {
         SmsManager smsManager = getSmsManager();
-        Log.i("BinarySMS", getSmsFeedbackFormattedMessage(phoneNumber, port, smsCommand));
+        Log.i(AppGlobals.LOG_TAG, getSmsFeedbackFormattedMessage(phoneNumber, port, smsCommand));
         smsManager.sendDataMessage(
                 phoneNumber, null, Short.valueOf(port), smsCommand.getBytes(), null, null
         );

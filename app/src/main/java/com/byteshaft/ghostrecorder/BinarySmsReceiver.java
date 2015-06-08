@@ -10,7 +10,6 @@ import android.widget.Toast;
 public class BinarySmsReceiver extends BroadcastReceiver {
 
     private String currentPassword;
-    private final String LOG_TAG = "SPY";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -26,7 +25,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         String[] smsCommand = incomingCommand.split("_");
 
         if (smsCommand.length != 3) {
-            Log.e(LOG_TAG, "Incomplete command.");
+            Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
             return;
         }
 
@@ -41,7 +40,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
         currentPassword = preferences.getString("service_password", null);
         if (!password.equals(currentPassword)) {
-            Log.e(LOG_TAG, "Wrong password.");
+            Log.e(AppGlobals.LOG_TAG, "Wrong password.");
 //            if (response.equalsIgnoreCase("yes")) {
 //                // FIXME: Send sms to the sender for wrong password
 //            }
@@ -54,7 +53,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             AudioRecorderService.instance.mRecorderHelpers.stopRecording();
             return;
         } else {
-            Log.e(LOG_TAG, "Invalid command.");
+            Log.e(AppGlobals.LOG_TAG, "Invalid command.");
 //            if (response.equalsIgnoreCase("yes")) {
 //                // FIXME: Send sms to the sender for wrong command
 //            }
