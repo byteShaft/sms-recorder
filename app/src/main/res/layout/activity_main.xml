@@ -1,4 +1,4 @@
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,10 +11,38 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
+    <Switch
+        android:id="@+id/service_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Placeholder"
-        android:layout_centerInParent="true"/>
+        android:text="Enable Service" />
 
-</RelativeLayout>
+    <EditText
+        android:id="@+id/password_entry"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter password" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/button_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:onClick="onClick"/>
+
+        <Button
+            android:id="@+id/button_ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ok"
+            android:enabled="false"
+            android:onClick="onClick" />
+
+    </LinearLayout>
+
+</LinearLayout>
