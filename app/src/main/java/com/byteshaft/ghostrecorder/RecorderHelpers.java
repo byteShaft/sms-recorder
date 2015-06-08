@@ -9,6 +9,9 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class RecorderHelpers extends ContextWrapper {
 
@@ -55,5 +58,9 @@ public class RecorderHelpers extends ContextWrapper {
         if (!recordingsDirectory.exists()) {
             recordingsDirectory.mkdir();
         }
+    }
+
+    private String getTimeStamp() {
+        return new SimpleDateFormat("yyyyMMddhhmmss", Locale.US).format(new Date());
     }
 }

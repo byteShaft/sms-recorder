@@ -8,6 +8,10 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class Helpers {
 
     void sendDataSms(String phoneNumber, String port, String smsCommand) {
