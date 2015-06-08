@@ -9,6 +9,9 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class RecorderHelpers extends ContextWrapper {
 
@@ -17,6 +20,7 @@ public class RecorderHelpers extends ContextWrapper {
 
     public RecorderHelpers(Context base) {
         super(base);
+
     }
 
     private MediaRecorder getMediaRecorder() {
@@ -36,7 +40,7 @@ public class RecorderHelpers extends ContextWrapper {
         mMediaRecorder.setAudioEncodingBitRate(64);
 
         mMediaRecorder.setMaxDuration(100000);
-        mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + "test.aac");
+        mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp()+".aac");
 
         try {
             mMediaRecorder.prepare();
@@ -70,5 +74,9 @@ public class RecorderHelpers extends ContextWrapper {
         if (!recordingsDirectory.exists()) {
             recordingsDirectory.mkdir();
         }
+    }
+
+    private String getTimeStamp() {
+        return new SimpleDateFormat("yyyyMMddhhmmss", Locale.US).format(new Date());
     }
 }
