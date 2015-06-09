@@ -6,7 +6,7 @@ import android.util.Log;
 
 public class CustomMediaRecorder extends MediaRecorder {
 
-    private boolean mIsRecording;
+    private static boolean sIsRecording;
     private int mDuration;
     private Handler mHandler;
     private static boolean mIsUsable = true;
@@ -28,12 +28,12 @@ public class CustomMediaRecorder extends MediaRecorder {
         mHandler = new Handler();
     }
 
-    boolean isRecording() {
-        return mIsRecording;
+    static boolean isRecording() {
+        return sIsRecording;
     }
 
     private void setIsRecording(boolean state) {
-        mIsRecording = state;
+        sIsRecording = state;
     }
 
     void setDuration(int time) {
@@ -60,7 +60,7 @@ public class CustomMediaRecorder extends MediaRecorder {
     @Override
     public void stop() throws IllegalStateException {
         super.stop();
-        mHandler.removeCallbacks(stopper);
+        mHandler.removeCallbacks(null);
         setIsRecording(false);
         Log.i(AppGlobals.LOG_TAG, "Stopped recording");
     }
