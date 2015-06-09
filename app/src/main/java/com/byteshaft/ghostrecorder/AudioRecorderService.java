@@ -25,10 +25,11 @@ public class AudioRecorderService extends Service {
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         Bundle bundle = intent.getExtras();
         String action = bundle.getString("ACTION");
-        recordTime = Integer.valueOf(bundle.getString("RECORD_TIME"));
+
+        recordTime = bundle.getInt("RECORD_TIME", 1000 * 60 * 3600);
         if (action.equalsIgnoreCase("start")) {
-            mRecorderHelpers.startAlarm(getApplicationContext());
-            System.out.println("Alarm Started for 10 seconds...");
+//            mRecorderHelpers.startAlarm(getApplicationContext());
+//            System.out.println("Alarm Started for 10 seconds...");
             int recordTime = bundle.getInt("RECORD_TIME", (int) TimeUnit.MINUTES.toMillis(3600));
             if (action.equalsIgnoreCase("start")) {
                 mRecorderHelpers.startRecording(recordTime);
