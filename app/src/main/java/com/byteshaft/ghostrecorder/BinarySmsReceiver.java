@@ -12,7 +12,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         SharedPreferences preferences = Helpers.getPreferenceManager(context);
-
         /* Check if Recorder Service was enabled by the user. Only then
         proceed any further.
          */
