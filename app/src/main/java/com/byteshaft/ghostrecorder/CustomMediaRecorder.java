@@ -4,6 +4,8 @@ import android.media.MediaRecorder;
 import android.os.Handler;
 import android.util.Log;
 
+import java.util.ArrayList;
+
 public class CustomMediaRecorder extends MediaRecorder {
 
     private static boolean sIsRecording;
@@ -11,6 +13,8 @@ public class CustomMediaRecorder extends MediaRecorder {
     private Handler mHandler;
     private static boolean mIsUsable = true;
     private static CustomMediaRecorder mCustomMediaRecorder;
+    private ArrayList<OnNewFileWrittenListener> mListeners = new ArrayList<>();
+    private String mFilePath;
 
     static CustomMediaRecorder getInstance() {
         if (mCustomMediaRecorder == null) {
@@ -22,6 +26,10 @@ public class CustomMediaRecorder extends MediaRecorder {
         } else {
             return mCustomMediaRecorder;
         }
+    }
+
+    void setOnNewFileWrittenListener(OnNewFileWrittenListener listener) {
+        mListeners.add(listener);
     }
 
     private CustomMediaRecorder() {
@@ -62,7 +70,16 @@ public class CustomMediaRecorder extends MediaRecorder {
         super.stop();
         mHandler.removeCallbacks(null);
         setIsRecording(false);
+        for (OnNewFileWrittenListener listener : mListeners) {
+            listener.onNewRecordingCompleted(mFilePath);
+        }
         Log.i(AppGlobals.LOG_TAG, "Stopped recording");
+    }
+
+    @Override
+    public void setOutputFile(String path) throws IllegalStateException {
+        super.setOutputFile(path);
+        mFilePath = path;
     }
 
     @Override
@@ -79,4 +96,8 @@ public class CustomMediaRecorder extends MediaRecorder {
             }
         }
     };
+
+    public interface OnNewFileWrittenListener {
+        void onNewRecordingCompleted(String path);
+    }
 }
