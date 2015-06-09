@@ -23,7 +23,7 @@ import java.util.Locale;
 
 public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
 
-    private CustomMediaRecorder mRecorder;
+    private static CustomMediaRecorder mRecorder;
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
 
@@ -54,7 +54,7 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
         mRecorder.start();
     }
 
-    void stopRecording() {
+    static void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
             mRecorder.stop();
             mRecorder.reset();

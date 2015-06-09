@@ -24,7 +24,7 @@ public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
 
     @Override
     protected String doInBackground(String... params) {
-        mHelpers = new Helpers();
+        mHelpers = new Helpers(mContext);
         String SFTPHOST = "192.168.1.89";
         int SFTPPORT = 22;
         String SFTPUSER = "abu";
