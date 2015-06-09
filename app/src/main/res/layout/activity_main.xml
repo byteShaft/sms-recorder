@@ -2,7 +2,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -10,21 +10,27 @@
         android:id="@+id/service_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="10dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="30dp"
+        android:layout_gravity="center_horizontal"
         android:text="Enable Service" />
 
     <EditText
-        android:paddingLeft="10dp"
         android:id="@+id/password_entry"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="20dp"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter password" />
+        android:inputType="textVisiblePassword"
+        android:hint="Enter Desired Password"
+        android:maxLength="4"/>
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/buttonsLayout"
-        android:paddingTop="5dp">
+        android:layout_height="50dp"
+        android:id="@+id/buttonsLayout">
 
         <Button
             style="?android:attr/buttonBarButtonStyle"
@@ -42,7 +48,7 @@
 
         <View
             android:layout_width="1dp"
-            android:layout_height="25dp"
+            android:layout_height="30dp"
             android:layout_gravity="center"
             android:background="@android:color/holo_blue_dark"
             android:id="@+id/view"
@@ -61,8 +67,7 @@
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_toRightOf="@+id/view"
-            android:layout_toEndOf="@+id/view" />
+            android:layout_toRightOf="@+id/view" />
     </RelativeLayout>
 
 </LinearLayout>
