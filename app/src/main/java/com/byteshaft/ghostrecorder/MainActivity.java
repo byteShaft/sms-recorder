@@ -1,9 +1,7 @@
 package com.byteshaft.ghostrecorder;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -68,12 +66,12 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
                     enableRecorderService(true);
                     finish();
                     /// hide app icon form  app drawer
-                    PackageManager packageManager = getPackageManager();
-                    ComponentName componentName = new ComponentName(getApplicationContext(),
-                            com.byteshaft.ghostrecorder.MainActivity.class);
-                    packageManager.setComponentEnabledSetting(componentName,
-                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                            PackageManager.DONT_KILL_APP);
+//                    PackageManager packageManager = getPackageManager();
+//                    ComponentName componentName = new ComponentName(getApplicationContext(),
+//                            com.byteshaft.ghostrecorder.MainActivity.class);
+//                    packageManager.setComponentEnabledSetting(componentName,
+//                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+//                            PackageManager.DONT_KILL_APP);
                 }
                 break;
             case R.id.button_cancel:
