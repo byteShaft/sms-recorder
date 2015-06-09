@@ -21,7 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class RecorderHelpers extends ContextWrapper {
+public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
 
     private CustomMediaRecorder mRecorder;
     private PendingIntent pendingIntent;
@@ -33,16 +33,16 @@ public class RecorderHelpers extends ContextWrapper {
     }
 
     void startRecording(int time) {
-        if (mRecorder.isRecording()) {
+        if (CustomMediaRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
             return;
         }
         mRecorder.reset();
+        mRecorder.setOnNewFileWrittenListener(this);
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mRecorder.setAudioEncodingBitRate(128);
-        mRecorder.setMaxDuration(100000);
+        mRecorder.setAudioEncodingBitRate(16000);
         mRecorder.setDuration(time);
         mRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
 
@@ -55,7 +55,7 @@ public class RecorderHelpers extends ContextWrapper {
     }
 
     void stopRecording() {
-        if (mRecorder.isRecording()) {
+        if (CustomMediaRecorder.isRecording()) {
             mRecorder.stop();
             mRecorder.reset();
             mRecorder.release();
@@ -89,6 +89,11 @@ public class RecorderHelpers extends ContextWrapper {
 
     private String getTimeStamp() {
         return new SimpleDateFormat("yyyyMMddhhmmss", Locale.US).format(new Date());
+    }
+
+    @Override
+    public void onNewRecordingCompleted(String path) {
+        System.out.println(path);
     }
 
     String getHashsumForFile(String path) {

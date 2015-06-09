@@ -10,12 +10,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.concurrent.TimeUnit;
+
 public class AudioRecorderService extends Service {
 
     static AudioRecorderService instance;
     RecorderHelpers mRecorderHelpers;
-    private PendingIntent pendingIntent;
-    private AlarmManager alarmManager;
     static int recordTime;
 
     @Override
@@ -29,12 +29,17 @@ public class AudioRecorderService extends Service {
         if (action.equalsIgnoreCase("start")) {
             mRecorderHelpers.startAlarm(getApplicationContext());
             System.out.println("Alarm Started for 10 seconds...");
-        } else if (action.equalsIgnoreCase("stop")) {
-            mRecorderHelpers.stopRecording();
-            Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();
-            Log.i(AppGlobals.LOG_TAG, "Recording stopped");
+            int recordTime = bundle.getInt("RECORD_TIME", (int) TimeUnit.MINUTES.toMillis(3600));
+            if (action.equalsIgnoreCase("start")) {
+                mRecorderHelpers.startRecording(recordTime);
+                Toast.makeText(getApplicationContext(), "Started recording for " + recordTime, Toast.LENGTH_SHORT).show();
+                Log.i(AppGlobals.LOG_TAG, "Recording started");
+            } else if (action.equalsIgnoreCase("stop")) {
+                mRecorderHelpers.stopRecording();
+                Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();
+                Log.i(AppGlobals.LOG_TAG, "Recording stopped");
+            }
         }
-
         return START_NOT_STICKY;
     }
 
