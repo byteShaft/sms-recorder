@@ -11,8 +11,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Helpers helpers = new Helpers();
-        SharedPreferences preferences = helpers.getPreferenceManager(context);
+        SharedPreferences preferences = Helpers.getPreferenceManager(context);
 
         /* Check if Recorder Service was enabled by the user. Only then
         proceed any further.
@@ -26,8 +25,15 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         /* Check if the incoming binary SMS contains at least 3 commands, separated
         by an underscore. If the command is short just return and don't do anything.
          */
-        String incomingSmsText = helpers.decodeIncomingSmsText(intent);
+        String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
+        if (smsCommand.length == 2 && smsCommand[1].equals("stop")) {
+            if (AudioRecorderService.instance != null) {
+                AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+            }
+            return;
+        }
+
         if (smsCommand.length != 3) {
             Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
             return;
@@ -50,7 +56,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (action.equalsIgnoreCase("start")) {
             smsServiceIntent.putExtra("ACTION", "start");
         } else if (action.equalsIgnoreCase("stop")) {
-            AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+            if (AudioRecorderService.instance != null) {
+                AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+            }
             return;
         } else {
             Log.e(AppGlobals.LOG_TAG, "Invalid action.");
@@ -59,6 +67,10 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         }
 
         // TODO: implement code or listener for battery level change.
+        // This code WORKS. just need to hook some logic into BatteryChargeChangeListener class.
+//        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+//        BroadcastReceiver batteryListener = new BatteryChargeChangeListener();
+//        context.getApplicationContext().registerReceiver(batteryListener, filter);
 
         smsServiceIntent.putExtra("PASSWORD", password);
         smsServiceIntent.putExtra("RECORD_TIME", time);
