@@ -11,8 +11,11 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class Helpers {
+
+    String path = Environment.getExternalStorageDirectory().toString()+"/Recordings";
 
     void sendDataSms(String phoneNumber, String port, String smsCommand) {
         SmsManager smsManager = getSmsManager();
@@ -49,15 +52,17 @@ public class Helpers {
         return PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
     }
 
-    void getAllFilesFromDir() {
-        String path = Environment.getExternalStorageDirectory().toString()+"/Recordings";
+    ArrayList<String> getAllFilesFromDir() {
         Log.d("Files", "Path: " + path);
         File f = new File(path);
         File file[] = f.listFiles();
+        ArrayList<String> arrayList = new ArrayList<>();
         Log.d("Files", "Size: "+ file.length);
         for (int i=0; i < file.length; i++)
         {
+            arrayList.add(file[i].getName());
             Log.d("Files", "FileName:" + file[i].getName());
         }
+        return arrayList;
     }
 }

