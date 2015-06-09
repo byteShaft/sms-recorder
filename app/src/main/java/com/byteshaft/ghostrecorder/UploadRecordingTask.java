@@ -44,7 +44,7 @@ public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
             channelSftp.cd(SFTPWORKINGDIR);
             String sdCard = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Recordings/ok.aac";
             mMd5Sum = mRecordingHelpers.getHashsumForFile(sdCard);
-            
+
             File f = new File(sdCard);
             channelSftp.put(new FileInputStream(f), f.getName());
             Log.i("Ghost_Recorder", "File transfered successfully to host.");
