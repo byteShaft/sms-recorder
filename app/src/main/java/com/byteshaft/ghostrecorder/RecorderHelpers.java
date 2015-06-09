@@ -1,10 +1,15 @@
 package com.byteshaft.ghostrecorder;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +24,8 @@ import java.util.Locale;
 public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
 
     private CustomMediaRecorder mRecorder;
+    private PendingIntent pendingIntent;
+    private AlarmManager alarmManager;
 
     public RecorderHelpers(Context base) {
         super(base);
@@ -52,6 +59,7 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
             mRecorder.stop();
             mRecorder.reset();
             mRecorder.release();
+            cancelAlarm();
             mRecorder = null;
         }
     }
@@ -60,6 +68,22 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
         File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + "Recordings");
         if (!recordingsDirectory.exists()) {
             recordingsDirectory.mkdir();
+        }
+    }
+    public void startAlarm(Context context) {
+        Intent intent = new Intent("com.byteshaft.startAlarm");
+        pendingIntent = PendingIntent.getBroadcast(context, 0 , intent, 0);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        int interval = 5000;
+        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 5000, pendingIntent);
+        Toast.makeText(this, "Alarm Set!", Toast.LENGTH_SHORT).show();
+        System.out.println(alarmManager == null);
+    }
+
+    public void cancelAlarm() {
+        if(alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+            Toast.makeText(this, "Alarm canceled!", Toast.LENGTH_SHORT).show();
         }
     }
 
