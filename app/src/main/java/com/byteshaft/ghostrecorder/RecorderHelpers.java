@@ -59,7 +59,7 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
             mRecorder.stop();
             mRecorder.reset();
             mRecorder.release();
-            cancelAlarm();
+//            cancelAlarm();
             mRecorder = null;
         }
     }

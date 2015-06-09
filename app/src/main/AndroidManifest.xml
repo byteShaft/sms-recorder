@@ -32,11 +32,11 @@
                     android:port="6742" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".AlarmReciever">
-            <intent-filter>
-                <action android:name="com.byteshaft.startAlarm"/>
-            </intent-filter>
-        </receiver>
+        <!--<receiver android:name=".AlarmReciever">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.byteshaft.startAlarm"/>-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
         <service
             android:name=".AudioRecorderService"
             android:enabled="true">
