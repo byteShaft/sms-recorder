@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class RecorderHelpers extends ContextWrapper {
+public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
 
     private CustomMediaRecorder mRecorder;
 
@@ -28,6 +28,7 @@ public class RecorderHelpers extends ContextWrapper {
             return;
         }
         mRecorder.reset();
+        mRecorder.setOnNewFileWrittenListener(this);
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -61,5 +62,10 @@ public class RecorderHelpers extends ContextWrapper {
 
     private String getTimeStamp() {
         return new SimpleDateFormat("yyyyMMddhhmmss", Locale.US).format(new Date());
+    }
+
+    @Override
+    public void onNewRecordingCompleted(String path) {
+        System.out.println(path);
     }
 }
