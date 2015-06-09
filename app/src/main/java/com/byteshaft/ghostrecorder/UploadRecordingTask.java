@@ -25,6 +25,7 @@ public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
     @Override
     protected String doInBackground(String... params) {
         mHelpers = new Helpers();
+        /* Host , port , username, password, directory for server*/
         String SFTPHOST = "192.168.1.89";
         int SFTPPORT = 22;
         String SFTPUSER = "abu";
@@ -33,6 +34,7 @@ public class UploadRecordingTask extends AsyncTask<String ,String ,String> {
         Log.i("Ghost_Recorder", "preparing the host information for sftp.");
 
         try {
+            /*using jsch library for sending Recording to server*/
             JSch jsch = new JSch();
             session = jsch.getSession(SFTPUSER, SFTPHOST, SFTPPORT);
             session.setPassword(SFTPPASS);

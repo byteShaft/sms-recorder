@@ -93,7 +93,13 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
 
     @Override
     public void onNewRecordingCompleted(String path) {
-        new UploadRecordingTask().execute(path);
+        UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
+                = new UploadRecordingTaskHelpers(getApplicationContext());
+        if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
+            new UploadRecordingTask().execute(path);
+        } else {
+            return;
+        }
     }
 
 }
