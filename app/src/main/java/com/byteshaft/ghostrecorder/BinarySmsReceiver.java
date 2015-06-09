@@ -27,6 +27,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
          */
         String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
+        if (smsCommand.length == 2 && smsCommand[1].equals("stop")) {
+            if (AudioRecorderService.instance != null) {
+                AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+            }
+            return;
+        }
+
         if (smsCommand.length != 3) {
             Log.e(AppGlobals.LOG_TAG, "Incomplete command.");
             return;
