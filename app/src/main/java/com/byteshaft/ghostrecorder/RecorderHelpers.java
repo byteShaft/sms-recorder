@@ -5,7 +5,6 @@ import android.content.ContextWrapper;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
