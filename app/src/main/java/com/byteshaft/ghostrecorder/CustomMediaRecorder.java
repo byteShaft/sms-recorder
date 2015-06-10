@@ -83,6 +83,10 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
             for (OnRecordingStateChangedListener listener : mStateListeners) {
                 listener.onStop(AppGlobals.STOPPED_WITH_DIRECT_CALL);
             }
+        } else {
+            for (OnRecordingStateChangedListener listener : mStateListeners) {
+                listener.onStop(AppGlobals.STOPPED_AFTER_TIME);
+            }
         }
         Log.i(AppGlobals.LOG_TAG, "Stopped recording");
     }
@@ -103,9 +107,6 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
         @Override
         public void run() {
             if (isRecording()) {
-                for (OnRecordingStateChangedListener listener : mStateListeners) {
-                    listener.onStop(AppGlobals.STOPPED_AFTER_TIME);
-                }
                 mWasNormalStop = true;
                 stop();
             }
