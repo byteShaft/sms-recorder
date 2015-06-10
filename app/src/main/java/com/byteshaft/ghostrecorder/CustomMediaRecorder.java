@@ -6,7 +6,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
-public class CustomMediaRecorder extends MediaRecorder {
+public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.OnInfoListener {
 
     private static boolean sIsRecording;
     private int mDuration;
@@ -14,7 +14,9 @@ public class CustomMediaRecorder extends MediaRecorder {
     private static boolean mIsUsable = true;
     private static CustomMediaRecorder mCustomMediaRecorder;
     private ArrayList<OnNewFileWrittenListener> mListeners = new ArrayList<>();
+    private ArrayList<OnRecordingStateChangedListener> mStateListeners = new ArrayList<>();
     private String mFilePath;
+    private boolean mWasNormalStop;
 
     static CustomMediaRecorder getInstance() {
         if (mCustomMediaRecorder == null) {
@@ -30,6 +32,10 @@ public class CustomMediaRecorder extends MediaRecorder {
 
     void setOnNewFileWrittenListener(OnNewFileWrittenListener listener) {
         mListeners.add(listener);
+    }
+
+    void setOnRecordingStateChangedListener(OnRecordingStateChangedListener listener) {
+        mStateListeners.add(listener);
     }
 
     private CustomMediaRecorder() {
@@ -73,6 +79,11 @@ public class CustomMediaRecorder extends MediaRecorder {
         for (OnNewFileWrittenListener listener : mListeners) {
             listener.onNewRecordingCompleted(mFilePath);
         }
+        if (!mWasNormalStop) {
+            for (OnRecordingStateChangedListener listener : mStateListeners) {
+                listener.onStop(AppGlobals.STOPPED_WITH_DIRECT_CALL);
+            }
+        }
         Log.i(AppGlobals.LOG_TAG, "Stopped recording");
     }
 
@@ -92,12 +103,31 @@ public class CustomMediaRecorder extends MediaRecorder {
         @Override
         public void run() {
             if (isRecording()) {
+                for (OnRecordingStateChangedListener listener : mStateListeners) {
+                    listener.onStop(AppGlobals.STOPPED_AFTER_TIME);
+                }
+                mWasNormalStop = true;
                 stop();
             }
         }
     };
 
+    @Override
+    public void onInfo(MediaRecorder mr, int what, int extra) {
+        switch (what) {
+            case MEDIA_ERROR_SERVER_DIED:
+                for (OnRecordingStateChangedListener listener : mStateListeners) {
+                    listener.onStop(AppGlobals.SERVER_DIED);
+                }
+                break;
+        }
+    }
+
     public interface OnNewFileWrittenListener {
         void onNewRecordingCompleted(String path);
+    }
+
+    public interface OnRecordingStateChangedListener {
+        void onStop(int stopper);
     }
 }
