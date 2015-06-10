@@ -23,13 +23,13 @@ import java.util.Locale;
 
 public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
 
-    private CustomMediaRecorder mRecorder;
+    private static CustomMediaRecorder sRecorder;
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
 
     public RecorderHelpers(Context base) {
         super(base);
-        mRecorder = CustomMediaRecorder.getInstance();
+        sRecorder = CustomMediaRecorder.getInstance();
     }
 
     void startRecording(int time) {
@@ -37,30 +37,30 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
             Log.i("SPY", "Recording already in progress");
             return;
         }
-        mRecorder.reset();
-        mRecorder.setOnNewFileWrittenListener(this);
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mRecorder.setAudioEncodingBitRate(16000);
-        mRecorder.setDuration(time);
-        mRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
+        sRecorder.reset();
+        sRecorder.setOnNewFileWrittenListener(this);
+        sRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        sRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        sRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        sRecorder.setAudioEncodingBitRate(16000);
+        sRecorder.setDuration(time);
+        sRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
 
         try {
-            mRecorder.prepare();
+            sRecorder.prepare();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mRecorder.start();
+        sRecorder.start();
     }
 
-    void stopRecording() {
+    static void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
-            mRecorder.stop();
-            mRecorder.reset();
-            mRecorder.release();
+            sRecorder.stop();
+            sRecorder.reset();
+            sRecorder.release();
 //            cancelAlarm();
-            mRecorder = null;
+            sRecorder = null;
         }
     }
 
