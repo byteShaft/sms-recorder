@@ -16,7 +16,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
+public class RecorderHelpers extends ContextWrapper implements
+        CustomMediaRecorder.OnNewFileWrittenListener,
+        CustomMediaRecorder.OnRecordingStateChangedListener {
 
     private static CustomMediaRecorder sRecorder;
     private PendingIntent pendingIntent;
@@ -34,6 +36,7 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
         }
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
+        sRecorder.setOnRecordingStateChangedListener(this);
         sRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         sRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         sRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -91,4 +94,15 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
         new UploadRecordingTask().execute(path);
     }
 
+    @Override
+    public void onStop(int stopper) {
+        switch (stopper) {
+            case AppGlobals.STOPPED_AFTER_TIME:
+                break;
+            case AppGlobals.STOPPED_WITH_DIRECT_CALL:
+                break;
+            case AppGlobals.SERVER_DIED:
+                break;
+        }
+    }
 }

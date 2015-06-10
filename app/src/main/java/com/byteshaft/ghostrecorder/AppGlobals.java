@@ -14,4 +14,8 @@ public class AppGlobals {
     static void setIsRecording(boolean state) {
         isRecording = state;
     }
+
+    static final int SERVER_DIED = 100;
+    static final int STOPPED_AFTER_TIME = 101;
+    static final int STOPPED_WITH_DIRECT_CALL = 102;
 }
