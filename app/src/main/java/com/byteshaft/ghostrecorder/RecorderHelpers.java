@@ -23,8 +23,8 @@ public class RecorderHelpers extends ContextWrapper implements
     private static CustomMediaRecorder sRecorder;
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
-//    private int mLoopCounter;
-//    private final int MAX_LENGTH = 20000;
+    private int mLoopCounter;
+    private final int MAX_LENGTH = 20000;
 
     public RecorderHelpers(Context base) {
         super(base);
@@ -55,16 +55,16 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.start();
     }
 
-//    void startRecording(int time, int test) {
-//        if (time < MAX_LENGTH) {
-//            startRecording(time);
-//        } else {
-//            if (mLoopCounter == 0) {
-//                mLoopCounter = time / MAX_LENGTH;
-//            }
-//            startRecording(MAX_LENGTH);
-//        }
-//    }
+    void startRecording(int time, int test) {
+        if (time < MAX_LENGTH) {
+            startRecording(time);
+        } else {
+            if (mLoopCounter == 0) {
+                mLoopCounter = time / MAX_LENGTH;
+            }
+            startRecording(MAX_LENGTH);
+        }
+    }
 
     static void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
@@ -113,12 +113,12 @@ public class RecorderHelpers extends ContextWrapper implements
     public void onStop(int stopper) {
         switch (stopper) {
             case AppGlobals.STOPPED_AFTER_TIME:
-//                if (mLoopCounter > 0) {
-//                    System.out.println(mLoopCounter);
-//                    startRecording(MAX_LENGTH);
-//                    mLoopCounter--;
-//                }
-//                break;
+                if (mLoopCounter > 0) {
+                    System.out.println(mLoopCounter);
+                    startRecording(MAX_LENGTH);
+                    mLoopCounter--;
+                }
+                break;
             case AppGlobals.STOPPED_WITH_DIRECT_CALL:
                 break;
             case AppGlobals.SERVER_DIED:
