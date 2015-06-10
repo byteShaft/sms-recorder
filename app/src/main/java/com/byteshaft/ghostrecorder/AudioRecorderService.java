@@ -39,6 +39,9 @@ public class AudioRecorderService extends Service {
             IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
             mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
             if (action.equalsIgnoreCase("start")) {
+
+                // for split recording
+//                mRecorderHelpers.startRecording(recordTime, 0);
                 mRecorderHelpers.startRecording(recordTime);
                 Toast.makeText(getApplicationContext(), "Started recording for " + recordTime, Toast.LENGTH_SHORT).show();
                 Log.i(AppGlobals.LOG_TAG, "Recording started");

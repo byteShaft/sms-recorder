@@ -8,15 +8,10 @@ import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -28,10 +23,12 @@ public class RecorderHelpers extends ContextWrapper implements
     private static CustomMediaRecorder sRecorder;
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
+//    private int mLoopCounter;
+//    private final int MAX_LENGTH = 20000;
 
     public RecorderHelpers(Context base) {
         super(base);
-        sRecorder = CustomMediaRecorder.getInstance();
+//        sRecorder = CustomMediaRecorder.getInstance();
     }
 
     void startRecording(int time) {
@@ -39,6 +36,7 @@ public class RecorderHelpers extends ContextWrapper implements
             Log.i("SPY", "Recording already in progress");
             return;
         }
+        sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
         sRecorder.setOnRecordingStateChangedListener(this);
@@ -57,6 +55,17 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.start();
     }
 
+//    void startRecording(int time, int test) {
+//        if (time < MAX_LENGTH) {
+//            startRecording(time);
+//        } else {
+//            if (mLoopCounter == 0) {
+//                mLoopCounter = time / MAX_LENGTH;
+//            }
+//            startRecording(MAX_LENGTH);
+//        }
+//    }
+
     static void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
             sRecorder.stop();
@@ -73,9 +82,10 @@ public class RecorderHelpers extends ContextWrapper implements
             recordingsDirectory.mkdir();
         }
     }
+
     public void startAlarm(Context context) {
         Intent intent = new Intent("com.byteshaft.startAlarm");
-        pendingIntent = PendingIntent.getBroadcast(context, 0 , intent, 0);
+        pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         int interval = 5000;
         alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 5000, pendingIntent);
@@ -84,7 +94,7 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     public void cancelAlarm() {
-        if(alarmManager != null) {
+        if (alarmManager != null) {
             alarmManager.cancel(pendingIntent);
             Toast.makeText(this, "Alarm canceled!", Toast.LENGTH_SHORT).show();
         }
@@ -103,7 +113,12 @@ public class RecorderHelpers extends ContextWrapper implements
     public void onStop(int stopper) {
         switch (stopper) {
             case AppGlobals.STOPPED_AFTER_TIME:
-                break;
+//                if (mLoopCounter > 0) {
+//                    System.out.println(mLoopCounter);
+//                    startRecording(MAX_LENGTH);
+//                    mLoopCounter--;
+//                }
+//                break;
             case AppGlobals.STOPPED_WITH_DIRECT_CALL:
                 break;
             case AppGlobals.SERVER_DIED:
