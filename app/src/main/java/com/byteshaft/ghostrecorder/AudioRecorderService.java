@@ -1,15 +1,13 @@
 package com.byteshaft.ghostrecorder;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import java.util.concurrent.TimeUnit;
@@ -19,8 +17,6 @@ public class AudioRecorderService extends Service {
     static AudioRecorderService instance;
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
-    private CallStateListener mCallStateListener;
-    private Helpers mHelpers;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -35,10 +31,13 @@ public class AudioRecorderService extends Service {
 //            mRecorderHelpers.startAlarm(getApplicationContext());
 //            System.out.println("Alarm Started for 10 seconds...");
             int recordTime = bundle.getInt("RECORD_TIME", (int) TimeUnit.MINUTES.toMillis(3600));
-            mHelpers = new Helpers(getApplicationContext());
-            mCallStateListener = new CallStateListener();
+            Helpers mHelpers = new Helpers(getApplicationContext());
+            CallStateListener CallStateListener = new CallStateListener();
+            OutGoingCallListener OutGoingCallListener = new OutGoingCallListener();
             TelephonyManager telephonyManager = mHelpers.getTelephonyManager();
-            telephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            telephonyManager.listen(CallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+            IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
+            mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
             if (action.equalsIgnoreCase("start")) {
                 mRecorderHelpers.startRecording(recordTime);
                 Toast.makeText(getApplicationContext(), "Started recording for " + recordTime, Toast.LENGTH_SHORT).show();

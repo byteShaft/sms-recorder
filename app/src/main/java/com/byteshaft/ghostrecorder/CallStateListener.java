@@ -5,8 +5,6 @@ import android.telephony.TelephonyManager;
 
 public class CallStateListener extends PhoneStateListener {
 
-
-
     @Override
     public void onCallStateChanged(int state, String incomingNumber) {
         super.onCallStateChanged(state, incomingNumber);
@@ -15,10 +13,6 @@ public class CallStateListener extends PhoneStateListener {
                 if (CustomMediaRecorder.isRecording()) {
                     RecorderHelpers.stopRecording();
                 }
-                break;
-            case TelephonyManager.CALL_STATE_IDLE:
-                break;
-            case TelephonyManager.CALL_STATE_OFFHOOK:
                 break;
         }
     }

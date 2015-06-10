@@ -125,7 +125,5 @@ public class Helpers extends ContextWrapper {
 
     TelephonyManager getTelephonyManager() {
         return (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-
     }
-
 }

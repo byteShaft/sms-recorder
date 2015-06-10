@@ -66,7 +66,7 @@ public class CustomMediaRecorder extends MediaRecorder {
     }
 
     @Override
-    public void stop(){
+    public void stop() {
         super.stop();
         mHandler.removeCallbacks(null);
         setIsRecording(false);
