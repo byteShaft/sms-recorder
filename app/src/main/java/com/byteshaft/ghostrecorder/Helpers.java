@@ -1,6 +1,7 @@
 package com.byteshaft.ghostrecorder;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.io.File;
@@ -18,9 +20,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-public class Helpers {
+public class Helpers extends ContextWrapper {
 
     String path = Environment.getExternalStorageDirectory().toString()+"/Recordings";
+
+    public Helpers(Context base) {
+        super(base);
+    }
 
     void sendDataSms(String phoneNumber, String port, String smsCommand) {
         SmsManager smsManager = getSmsManager();
@@ -115,5 +121,9 @@ public class Helpers {
         }
 
         return sb.toString();
+    }
+
+    TelephonyManager getTelephonyManager() {
+        return (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
     }
 }
