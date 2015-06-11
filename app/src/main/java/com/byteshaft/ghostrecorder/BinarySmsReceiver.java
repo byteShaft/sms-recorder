@@ -9,6 +9,7 @@ import android.os.BatteryManager;
 import android.util.Log;
 import android.widget.Toast;
 
+
 public class BinarySmsReceiver extends BroadcastReceiver {
 
     private String mPassword;
@@ -19,9 +20,16 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private String batteryThresholdValue;
     private SharedPreferences mPreferences;
     private int batteryValueCheck;
+    private int mDurationRecord;
+    private int mRecordWhen;
+    private int hours;
+    private int minutes;
+    private int intervals;
+    private Context mContext;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        mContext = context;
         Log.i(AppGlobals.LOG_TAG, "Message Received");
 
         Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -49,17 +57,18 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
             return;
         }
-
         mPassword = smsCommand[0];
         if (!isPasswordValid(mPassword)) {
             Log.e(AppGlobals.LOG_TAG, "Invalid Password.");
             return;
         }
-
         Intent smsServiceIntent = new Intent(
                 context.getApplicationContext(), AudioRecorderService.class);
 
+        System.out.println(smsCommand.length);
+
         if (smsCommand.length == 2) {
+            System.out.println("Command 2");
             mActionRaw = smsCommand[1];
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
@@ -88,16 +97,21 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             }
         } else if (smsCommand.length == 3) {
+            System.out.println("commmand 3");
             mActionRaw = smsCommand[1];
             mTime = smsCommand[2];
-            int realTime = Integer.valueOf(mTime);
+//            int mDurationRecord = Integer.valueOf(mDurationRecord);
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+            } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
+                Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
+            } else if (!isTimeValid(mTime)) {
+                Log.e(AppGlobals.LOG_TAG, "Invalid Command");
             } else {
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
                         smsServiceIntent.putExtra("ACTION", mAction);
-                        smsServiceIntent.putExtra("RECORD_TIME", realTime * 1000 * 60);
+                        smsServiceIntent.putExtra("RECORD_TIME", mDurationRecord * 1000 * 60);
                         if (mAutoResponse) {
                             Log.i(AppGlobals.LOG_TAG, "Starting recording, response generated");
                             // FIXME: Implement sending a response SMS.
@@ -138,17 +152,28 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
+            } else {
+                return false;
             }
         } else if (actionArray.length == 2) {
+            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
+            if (!mAutoResponse) {
+                return false;
+            }
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
+                return true;
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
+                return true;
             } else {
                 return false;
             }
-            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
         } else if (actionArray.length == 3) {
+            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
+            if (!mAutoResponse) {
+                return false;
+            }
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
@@ -156,9 +181,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else {
                 return false;
             }
-            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
             batteryThresholdValue = actionArray[2];
-
             try {
                 batteryValueCheck = Integer.parseInt(batteryThresholdValue);
             } catch (NumberFormatException e) {
@@ -170,12 +193,68 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         }
         return false;
     }
+
     private boolean isSmsCommandOfValidLength(String[] command) {
         return command.length > 1 && command.length <= 5;
     }
 
     private boolean isTimeValid(String time) {
-        int realTime = Integer.valueOf(time);
-        return realTime > 0 && realTime <= 3600;
+        Log.e(AppGlobals.LOG_TAG, time);
+        String[] timeArray = time.split(":");
+        try {
+            mDurationRecord = Integer.valueOf(timeArray[0]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        if (timeArray.length == 1) {
+            return mDurationRecord > 0 && mDurationRecord <= 3600;
+        } else if (timeArray.length == 2) {            
+            if (mDurationRecord > 3600 || mDurationRecord < 0) {
+                return false;
+            }
+            String when = timeArray[1];
+            System.out.print(when);
+            if(when.length() != 4){
+                return false;
+            }
+            System.out.print(when);
+            String[] splitWhen = when.split("(?<=\\G.{2})");
+            try {
+                hours = Integer.parseInt(splitWhen[0]);
+                minutes = Integer.parseInt(splitWhen[1]);
+                System.out.println(hours);
+                System.out.println(minutes);
+            } catch (NumberFormatException e) {
+                return false;
+            } if (hours < 0 || hours > 24 || minutes < 0 || minutes > 60) {
+                return false;
+            }
+        } else if (timeArray.length == 3){
+            if (mDurationRecord > 3600 || mDurationRecord < 0) {
+                return false;
+            }
+            String when = timeArray[1];
+            if(when.length() != 4){
+                return false;
+            }
+            String[] splitWhen = when.split("(?<=\\G.{2})");
+            try {
+                hours = Integer.parseInt(splitWhen[0]);
+                minutes = Integer.parseInt(splitWhen[1]);
+            } catch (NumberFormatException e) {
+                return false;
+            } if (hours < 0 || hours > 24 || minutes < 0 || minutes > 60) {
+                return false;
+            }
+            String interval = timeArray[2];
+            try {
+                intervals = Integer.parseInt(interval);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            if (intervals < 0 || intervals > 10) {
+                return false;
+            }
+        } return true;
     }
 }
