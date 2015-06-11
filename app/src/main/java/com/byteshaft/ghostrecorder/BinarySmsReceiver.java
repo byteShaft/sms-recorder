@@ -21,7 +21,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private SharedPreferences mPreferences;
     private int batteryValueCheck;
     private int mDurationRecord;
-    private int mRecordWhen;
     private int hours;
     private int minutes;
     private int intervals;
@@ -47,9 +46,10 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             return;
         }
 
-        /* Check if the incoming binary SMS contains at least 3 commands, separated
+        /* Check if the incoming binary SMS contains at least 2 commands, separated
         by an underscore. If the command is short just return and don't do anything.
          */
+
         String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
 
@@ -70,6 +70,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (smsCommand.length == 2) {
             System.out.println("Command 2");
             mActionRaw = smsCommand[1];
+
+            /* Checks to see if the Command is valid. If yes, progresses further.*/
+
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
@@ -97,10 +100,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             }
         } else if (smsCommand.length == 3) {
-            System.out.println("commmand 3");
             mActionRaw = smsCommand[1];
             mTime = smsCommand[2];
-//            int mDurationRecord = Integer.valueOf(mDurationRecord);
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
@@ -108,6 +109,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (!isTimeValid(mTime)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command");
             } else {
+                Log.i(AppGlobals.LOG_TAG, "Hours" + hours);
+                Log.i(AppGlobals.LOG_TAG, "Minutes" + minutes);
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
                         smsServiceIntent.putExtra("ACTION", mAction);
@@ -217,16 +220,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             if(when.length() != 4){
                 return false;
             }
-            System.out.print(when);
             String[] splitWhen = when.split("(?<=\\G.{2})");
             try {
                 hours = Integer.parseInt(splitWhen[0]);
                 minutes = Integer.parseInt(splitWhen[1]);
-                System.out.println(hours);
-                System.out.println(minutes);
             } catch (NumberFormatException e) {
                 return false;
-            } if (hours < 0 || hours > 24 || minutes < 0 || minutes > 60) {
+            } if (hours > 23 || minutes > 59) {
                 return false;
             }
         } else if (timeArray.length == 3){
@@ -243,7 +243,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 minutes = Integer.parseInt(splitWhen[1]);
             } catch (NumberFormatException e) {
                 return false;
-            } if (hours < 0 || hours > 24 || minutes < 0 || minutes > 60) {
+            } if (hours > 23 || minutes > 59) {
                 return false;
             }
             String interval = timeArray[2];
