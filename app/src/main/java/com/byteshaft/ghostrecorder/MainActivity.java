@@ -19,7 +19,7 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
 
     private Switch mServiceSwitch;
     private Button mButtonOk;
-    private EditText mPasswordEntry;
+    private EditText mPasswordEntry, mBatteryLevelEntry;
     private SharedPreferences mPreferences;
 
     @Override
@@ -30,9 +30,9 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
         mServiceSwitch = (Switch) findViewById(R.id.service_switch);
         mServiceSwitch.setOnCheckedChangeListener(this);
         mButtonOk = (Button) findViewById(R.id.button_ok);
+        mBatteryLevelEntry = (EditText) findViewById(R.id.battery_entry);
         mPasswordEntry = (EditText) findViewById(R.id.password_entry);
-        mPreferences = getPreferenceManager();
-    }
+        mPreferences = getPreferenceManager();    }
 
     @Override
     protected void onResume() {
@@ -60,11 +60,12 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_ok:
-                if (TextUtils.isEmpty(mPasswordEntry.getText())) {
-                    Toast.makeText(getApplicationContext(), "Empty", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(mPasswordEntry.getText()) ||  TextUtils.isEmpty(mBatteryLevelEntry.getText())) {
+                    Toast.makeText(getApplicationContext(), "One of more fields are empty", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getApplicationContext(), "Service activated", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Service Activated", Toast.LENGTH_SHORT).show();
                     mPreferences.edit().putString("service_password", mPasswordEntry.getText().toString()).apply();
+                    mPreferences.edit().putString("battery_level", mBatteryLevelEntry.getText().toString()).apply();
                     enableRecorderService(true);
                     finish();
                     /// hide app icon form  app drawer
@@ -80,6 +81,5 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
                 finish();
                 break;
         }
-
     }
 }

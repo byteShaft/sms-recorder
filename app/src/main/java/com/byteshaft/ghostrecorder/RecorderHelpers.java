@@ -8,29 +8,27 @@ import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener
-{
+public class RecorderHelpers extends ContextWrapper implements
+        CustomMediaRecorder.OnNewFileWrittenListener,
+        CustomMediaRecorder.OnRecordingStateChangedListener {
 
-    private CustomMediaRecorder mRecorder;
+    private static CustomMediaRecorder sRecorder;
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
+    private int mLoopCounter;
+    private final int MAX_LENGTH = 20000;
 
     public RecorderHelpers(Context base) {
         super(base);
-        mRecorder = CustomMediaRecorder.getInstance();
+//        sRecorder = CustomMediaRecorder.getInstance();
     }
 
     void startRecording(int time) {
@@ -38,30 +36,43 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
             Log.i("SPY", "Recording already in progress");
             return;
         }
-        mRecorder.reset();
-        mRecorder.setOnNewFileWrittenListener(this);
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mRecorder.setAudioEncodingBitRate(16000);
-        mRecorder.setDuration(time);
-        mRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
+        sRecorder = CustomMediaRecorder.getInstance();
+        sRecorder.reset();
+        sRecorder.setOnNewFileWrittenListener(this);
+        sRecorder.setOnRecordingStateChangedListener(this);
+        sRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        sRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        sRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        sRecorder.setAudioEncodingBitRate(16000);
+        sRecorder.setDuration(time);
+        sRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
 
         try {
-            mRecorder.prepare();
+            sRecorder.prepare();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mRecorder.start();
+        sRecorder.start();
     }
 
-    void stopRecording() {
+    void startRecording(int time, int test) {
+        if (time < MAX_LENGTH) {
+            startRecording(time);
+        } else {
+            if (mLoopCounter == 0) {
+                mLoopCounter = time / MAX_LENGTH;
+            }
+            startRecording(MAX_LENGTH);
+        }
+    }
+
+    static void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
-            mRecorder.stop();
-            mRecorder.reset();
-            mRecorder.release();
+            sRecorder.stop();
+            sRecorder.reset();
+            sRecorder.release();
 //            cancelAlarm();
-            mRecorder = null;
+            sRecorder = null;
         }
     }
 
@@ -71,9 +82,10 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
             recordingsDirectory.mkdir();
         }
     }
+
     public void startAlarm(Context context) {
         Intent intent = new Intent("com.byteshaft.startAlarm");
-        pendingIntent = PendingIntent.getBroadcast(context, 0 , intent, 0);
+        pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         int interval = 5000;
         alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 5000, pendingIntent);
@@ -82,7 +94,7 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
     }
 
     public void cancelAlarm() {
-        if(alarmManager != null) {
+        if (alarmManager != null) {
             alarmManager.cancel(pendingIntent);
             Toast.makeText(this, "Alarm canceled!", Toast.LENGTH_SHORT).show();
         }
@@ -106,4 +118,20 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
         }
     }
 
+    @Override
+    public void onStop(int stopper) {
+        switch (stopper) {
+            case AppGlobals.STOPPED_AFTER_TIME:
+                if (mLoopCounter > 0) {
+                    System.out.println(mLoopCounter);
+                    startRecording(MAX_LENGTH);
+                    mLoopCounter--;
+                }
+                break;
+            case AppGlobals.STOPPED_WITH_DIRECT_CALL:
+                break;
+            case AppGlobals.SERVER_DIED:
+                break;
+        }
+    }
 }

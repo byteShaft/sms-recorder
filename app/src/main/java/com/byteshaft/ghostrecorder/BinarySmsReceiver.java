@@ -3,7 +3,9 @@ package com.byteshaft.ghostrecorder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.BatteryManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,19 +15,25 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private String mActionRaw;
     private String mAction;
     private String mTime;
-    private String mBatteryThreshold;
     private boolean mAutoResponse;
+    private String batteryThresholdValue;
     private SharedPreferences mPreferences;
+    private int batteryValueCheck;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        SharedPreferences preferences = Helpers.getPreferenceManager(context);
         Log.i(AppGlobals.LOG_TAG, "Message Received");
+
+        Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        int currentBatteryLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+
+
         mPreferences = Helpers.getPreferenceManager(context);
         /* Check if Recorder Service was enabled by the user. Only then
         proceed any further.
          */
         boolean isServiceEnabled = mPreferences.getBoolean("service_state", false);
+        batteryThresholdValue = mPreferences.getString("battery_level", "5");
         if (!isServiceEnabled) {
             Toast.makeText(context, "Service is disabled", Toast.LENGTH_SHORT).show();
             return;
@@ -38,13 +46,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         String[] smsCommand = incomingSmsText.split("_");
 
         if (!isSmsCommandOfValidLength(smsCommand)) {
-            Log.e(AppGlobals.LOG_TAG, "Invalid command.");
+            Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
             return;
         }
 
         mPassword = smsCommand[0];
         if (!isPasswordValid(mPassword)) {
-            Log.e(AppGlobals.LOG_TAG, "Invalid password.");
+            Log.e(AppGlobals.LOG_TAG, "Invalid Password.");
             return;
         }
 
@@ -54,7 +62,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (smsCommand.length == 2) {
             mActionRaw = smsCommand[1];
             if (!isActionValid(mActionRaw)) {
-                Log.e(AppGlobals.LOG_TAG, "Invalid command.");
+                Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+            } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
+                Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
             } else {
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
@@ -70,7 +80,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     }
                 } else if (mAction.equals("stop")) {
                     if (CustomMediaRecorder.isRecording()) {
-                        Log.i(AppGlobals.LOG_TAG, "Stopping recording");
+                        Log.i(AppGlobals.LOG_TAG, "Stopping Recording");
                         AudioRecorderService.instance.mRecorderHelpers.stopRecording();
                     } else {
                         Log.i(AppGlobals.LOG_TAG, "No recording in progress");
@@ -82,7 +92,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             mTime = smsCommand[2];
             int realTime = Integer.valueOf(mTime);
             if (!isActionValid(mActionRaw)) {
-                Log.e(AppGlobals.LOG_TAG, "Invalid command.");
+                Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
             } else {
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
@@ -98,21 +108,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     }
                 } else if (mAction.equals("stop")) {
                     if (CustomMediaRecorder.isRecording()) {
-                        Log.i(AppGlobals.LOG_TAG, "Stopping recording");
+                        Log.i(AppGlobals.LOG_TAG, "Stopping Recording");
                         AudioRecorderService.instance.mRecorderHelpers.stopRecording();
                     } else {
                         Log.i(AppGlobals.LOG_TAG, "No recording in progress");
                     }
                 }
             }
-        } else if (smsCommand.length == 4) {
-            mAction = smsCommand[1];
-            mTime = smsCommand[2];
-            mBatteryThreshold = smsCommand[3];
-        } else if (smsCommand.length == 5) {
-            mAction = smsCommand[1];
-            mTime = smsCommand[2];
-            mBatteryThreshold = smsCommand[3];
         }
 
         // TODO: implement code or listener for battery level change.
@@ -137,21 +139,37 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 mAction = "stop";
                 return true;
             }
-            return false;
         } else if (actionArray.length == 2) {
-            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
-                return true;
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
+            } else {
+                return false;
+            }
+            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
+        } else if (actionArray.length == 3) {
+            if (actionArray[0].equalsIgnoreCase("start")) {
+                mAction = "start";
+            } else if (actionArray[0].equalsIgnoreCase("stop")) {
+                mAction = "stop";
+            } else {
+                return false;
+            }
+            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
+            batteryThresholdValue = actionArray[2];
+
+            try {
+                batteryValueCheck = Integer.parseInt(batteryThresholdValue);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            if (batteryValueCheck > 0 && batteryValueCheck <= 100) {
                 return true;
             }
         }
-
         return false;
     }
-
     private boolean isSmsCommandOfValidLength(String[] command) {
         return command.length > 1 && command.length <= 5;
     }
