@@ -106,7 +106,7 @@ public class RecorderHelpers extends ContextWrapper implements
 
     @Override
     public void onNewRecordingCompleted(String path) {
-        new UploadRecordingTask().execute(path);
+        new UploadRecordingTask(getApplicationContext()).execute(path);
     }
 
     @Override
