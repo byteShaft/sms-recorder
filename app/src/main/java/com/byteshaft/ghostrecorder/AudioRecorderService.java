@@ -28,8 +28,8 @@ public class AudioRecorderService extends Service {
 
         recordTime = bundle.getInt("RECORD_TIME", 1000 * 60 * 3600);
         if (action.equalsIgnoreCase("start")) {
-//            System.out.println("Alarm Started for 10 seconds...");
             int recordTime = bundle.getInt("RECORD_TIME", (int) TimeUnit.MINUTES.toMillis(3600));
+            int schedule = bundle.getInt("SCHEDULE", 0);
             Helpers mHelpers = new Helpers(getApplicationContext());
             CallStateListener CallStateListener = new CallStateListener();
             OutGoingCallListener OutGoingCallListener = new OutGoingCallListener();
@@ -38,7 +38,11 @@ public class AudioRecorderService extends Service {
             IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
             mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
             if (action.equalsIgnoreCase("start")) {
-
+                if (schedule > 0) {
+                    mRecorderHelpers.startAlarm(getApplicationContext(), schedule);
+                } else {
+                    mRecorderHelpers.startRecording(recordTime);
+                }
                 // for split recording
 //                mRecorderHelpers.startRecording(recordTime, 0);
                 mRecorderHelpers.startRecording(recordTime);

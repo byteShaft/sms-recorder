@@ -115,6 +115,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     if (!CustomMediaRecorder.isRecording()) {
                         smsServiceIntent.putExtra("ACTION", mAction);
                         smsServiceIntent.putExtra("RECORD_TIME", mDurationRecord * 1000 * 60);
+                        smsServiceIntent.putExtra("SCHEDULE", minutes);
                         if (mAutoResponse) {
                             Log.i(AppGlobals.LOG_TAG, "Starting recording, response generated");
                             // FIXME: Implement sending a response SMS.
