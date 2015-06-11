@@ -6,10 +6,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 
-public class SqliteHelper extends SQLiteOpenHelper {
+public class SqliteHelpers extends SQLiteOpenHelper {
 
     private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
-
     public static final String DATABASE_NAME = "Recordings.db";
     public static final int DATABASE_VERSION = 1;
     public static final String TABLE_NAME = "Recordings_table";
@@ -24,7 +23,7 @@ public class SqliteHelper extends SQLiteOpenHelper {
                     COULMN_DELETE + " TEXT , " +
                     COULMN_UPLOAD + " TEXT  " + " ) ";
 
-    public SqliteHelper(Context context) {
+    public SqliteHelpers(Context context) {
         super(context, DATABASE_NAME, null, 1);
     }
 
@@ -32,7 +31,6 @@ public class SqliteHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CREATE);
         Log.i(LOGTAG , "tabel created");
-
     }
 
     @Override

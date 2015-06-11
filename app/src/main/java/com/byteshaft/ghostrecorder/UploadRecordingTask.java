@@ -5,18 +5,15 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.KeyPair;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.SocketException;
 
 public class UploadRecordingTask extends AsyncTask<String, Void, String> {
 
@@ -70,8 +67,8 @@ public class UploadRecordingTask extends AsyncTask<String, Void, String> {
             System.out.println(notUploadedFile);
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper(mContext);
             recordingHelper.openDatabase();
-            recordingHelper.createNewEntry(SqliteHelper.COULMN_DELETE, notUploadedFile);
-            recordingHelper.createNewEntry(SqliteHelper.COULMN_UPLOAD, notUploadedFile);
+            recordingHelper.createNewEntry(SqliteHelpers.COULMN_DELETE, notUploadedFile);
+            recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, notUploadedFile);
         }
     }
 

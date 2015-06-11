@@ -19,9 +19,6 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
 
     private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
 
-    boolean currentNetworkState = false;
-
-
     public UploadRecordingTaskHelpers(Context base) {
         super(base);
     }
@@ -31,15 +28,6 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
-    class checkNetwworkState extends AsyncTask<String, String, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-
-            return null;
-        }
     }
 }
 
