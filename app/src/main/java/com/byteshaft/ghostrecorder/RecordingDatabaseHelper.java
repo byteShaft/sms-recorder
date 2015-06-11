@@ -17,6 +17,9 @@ public class RecordingDatabaseHelper {
 
     public RecordingDatabaseHelper(Context context) {
         mSqliteHelper = new SqliteHelpers(context);
+        mDbHelper = mSqliteHelper.getWritableDatabase();
+        mDbHelper = mSqliteHelper.getReadableDatabase();
+
     }
 
     void createNewEntry(String column, String value) {
@@ -24,10 +27,6 @@ public class RecordingDatabaseHelper {
         values.put(column, value);
         mDbHelper.insert(SqliteHelpers.TABLE_NAME, null, values);
         Log.i(LOGTAG, "open database");
-    }
-
-    void openDatabase() {
-        mDbHelper = mSqliteHelper.getWritableDatabase();
     }
 
     void deleteItem(String column, String value) {
@@ -41,13 +40,13 @@ public class RecordingDatabaseHelper {
         Log.i(LOGTAG, "close database");
     }
 
-    ArrayList<String> retrieveDate() {
+    ArrayList<String> retrieveDate(String column) {
         String query = "SELECT * FROM " + SqliteHelpers.TABLE_NAME;
         mCursor = mDbHelper.rawQuery(query, null);
         mCursor.moveToFirst();
         ArrayList<String> arrayList = new ArrayList<>();
         while (mCursor.moveToNext()) {
-            String itemname = mCursor.getString(mCursor.getColumnIndex(SqliteHelpers.COULMN_UPLOAD));
+            String itemname = mCursor.getString(mCursor.getColumnIndex(column));
             if (itemname != null) {
                 System.out.println(itemname);
                 arrayList.add(itemname);
