@@ -8,7 +8,7 @@ import android.util.Log;
 
 public class SqliteHelpers extends SQLiteOpenHelper {
 
-    private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
+    private final String LOG_TAG = AppGlobals.getLogTag(getClass());
     public static final String DATABASE_NAME = "Recordings.db";
     public static final int DATABASE_VERSION = 1;
     public static final String TABLE_NAME = "Recordings_table";
@@ -30,7 +30,7 @@ public class SqliteHelpers extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CREATE);
-        Log.i(LOGTAG , "tabel created");
+        Log.i(LOG_TAG , "tabel created");
     }
 
     @Override

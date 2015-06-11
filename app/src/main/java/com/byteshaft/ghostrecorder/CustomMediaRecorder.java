@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.OnInfoListener {
 
+    private String LOG_TAG = AppGlobals.getLogTag(getClass());
     private static boolean sIsRecording;
     private int mDuration;
     private Handler mHandler;
@@ -88,7 +89,7 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
                 listener.onStop(AppGlobals.STOPPED_AFTER_TIME);
             }
         }
-        Log.i(AppGlobals.LOG_TAG, "Stopped recording");
+        Log.i(LOG_TAG, "Stopped recording");
     }
 
     @Override

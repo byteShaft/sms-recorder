@@ -14,13 +14,22 @@ import java.util.concurrent.TimeUnit;
 
 public class AudioRecorderService extends Service {
 
-    static AudioRecorderService instance;
+    private String LOG_TAG = AppGlobals.getLogTag(getClass());
+    private static AudioRecorderService sInstance;
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
 
+    private void setInstance(AudioRecorderService service) {
+        sInstance = service;
+    }
+
+    static AudioRecorderService getInstance() {
+        return sInstance;
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        instance = this;
+        setInstance(this);
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         Bundle bundle = intent.getExtras();
@@ -47,11 +56,11 @@ public class AudioRecorderService extends Service {
 //                mRecorderHelpers.startRecording(recordTime, 0);
                 mRecorderHelpers.startRecording(recordTime);
                 Toast.makeText(getApplicationContext(), "Started recording for " + recordTime, Toast.LENGTH_SHORT).show();
-                Log.i(AppGlobals.LOG_TAG, "Recording started");
+                Log.i(LOG_TAG, "Recording started");
             } else if (action.equalsIgnoreCase("stop")) {
                 mRecorderHelpers.stopRecording();
                 Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();
-                Log.i(AppGlobals.LOG_TAG, "Recording stopped");
+                Log.i(LOG_TAG, "Recording stopped");
             }
         }
         return START_NOT_STICKY;

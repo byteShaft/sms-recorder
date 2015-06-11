@@ -10,10 +10,10 @@ import java.util.ArrayList;
 
 public class RecordingDatabaseHelper {
 
+    private final String LOG_TAG = AppGlobals.getLogTag(getClass());
     SQLiteDatabase mDbHelper;
     SqliteHelpers mSqliteHelper;
     Cursor mCursor;
-    private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
 
     public RecordingDatabaseHelper(Context context) {
         mSqliteHelper = new SqliteHelpers(context);
@@ -23,7 +23,7 @@ public class RecordingDatabaseHelper {
         ContentValues values = new ContentValues();
         values.put(column, value);
         mDbHelper.insert(SqliteHelpers.TABLE_NAME, null, values);
-        Log.i(LOGTAG, "open database");
+        Log.i(LOG_TAG, "open database");
     }
 
     void openDatabase() {
@@ -32,13 +32,13 @@ public class RecordingDatabaseHelper {
 
     void deleteItem(String column, String value) {
         mDbHelper.delete(SqliteHelpers.TABLE_NAME, column + " = ?", new String[]{value});
-        Log.i(LOGTAG, "Entry deleted");
+        Log.i(LOG_TAG, "Entry deleted");
     }
 
     void closeDatabase() {
         mSqliteHelper.close();
         mCursor.close();
-        Log.i(LOGTAG, "close database");
+        Log.i(LOG_TAG, "close database");
     }
 
     ArrayList<String> retrieveDate() {
