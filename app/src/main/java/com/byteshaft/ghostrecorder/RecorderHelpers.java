@@ -88,7 +88,7 @@ public class RecorderHelpers extends ContextWrapper implements
         pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         int interval = 5000;
-        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 5000, pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pendingIntent);
         Toast.makeText(this, "Alarm Set!", Toast.LENGTH_SHORT).show();
         System.out.println(alarmManager == null);
     }
