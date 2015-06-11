@@ -106,7 +106,16 @@ public class RecorderHelpers extends ContextWrapper implements
 
     @Override
     public void onNewRecordingCompleted(String path) {
-        new UploadRecordingTask(getApplicationContext()).execute(path);
+        UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
+                = new UploadRecordingTaskHelpers(getApplicationContext());
+        if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
+            new UploadRecordingTask(getApplicationContext()).execute(path);
+        } else {
+            RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
+                    (getApplicationContext());
+            recordingHelper.openDatabase();
+            recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, path);
+        }
     }
 
     @Override
