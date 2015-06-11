@@ -16,4 +16,8 @@ public class AppGlobals {
     static void logInformation(String tag, String message) {
         Log.i(tag, message);
     }
+
+    static void logError(String tag, String errorMessage) {
+        Log.e(tag, errorMessage);
+    }
 }
