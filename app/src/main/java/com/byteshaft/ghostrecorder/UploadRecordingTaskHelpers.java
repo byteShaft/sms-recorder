@@ -8,11 +8,16 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-public class UploadRecordingTaskHelpers extends ContextWrapper{
+public class UploadRecordingTaskHelpers extends ContextWrapper {
+
+    private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
 
     boolean currentNetworkState = false;
 
@@ -21,28 +26,7 @@ public class UploadRecordingTaskHelpers extends ContextWrapper{
         super(base);
     }
 
-    public boolean hasActiveInternetConnection() {
-
-        if (isNetworkAvailable()) {
-            try {
-                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
-                urlc.setRequestProperty("User-Agent", "Test");
-                urlc.setRequestProperty("Connection", "close");
-                urlc.setConnectTimeout(1500);
-                urlc.connect();
-                if (urlc.getResponseCode() == 200) {
-                    return true;
-                }
-            } catch (IOException e) {
-                Log.e("Ghost Recorder", "Error checking internet connection", e);
-            }
-        } else {
-             Log.e("Ghost Recorder", "No network available!");
-        }
-        return false;
-    }
-
-     boolean isNetworkAvailable() {
+    boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
@@ -57,5 +41,5 @@ public class UploadRecordingTaskHelpers extends ContextWrapper{
             return null;
         }
     }
-
 }
+

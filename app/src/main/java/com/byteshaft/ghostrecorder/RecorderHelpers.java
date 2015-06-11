@@ -21,7 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener {
+public class RecorderHelpers extends ContextWrapper implements CustomMediaRecorder.OnNewFileWrittenListener
+{
 
     private CustomMediaRecorder mRecorder;
     private PendingIntent pendingIntent;
@@ -96,9 +97,12 @@ public class RecorderHelpers extends ContextWrapper implements CustomMediaRecord
         UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
         if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
-            new UploadRecordingTask().execute(path);
+            new UploadRecordingTask(getApplicationContext()).execute(path);
         } else {
-            return;
+            RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
+                    (getApplicationContext());
+            recordingHelper.openDatabase();
+            recordingHelper.createNewEntry(SqliteHelper.COULMN_UPLOAD, path);
         }
     }
 
