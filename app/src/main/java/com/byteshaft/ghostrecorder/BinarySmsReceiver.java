@@ -93,6 +93,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             int realTime = Integer.valueOf(mTime);
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+            } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
+                Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
             } else {
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
@@ -138,17 +140,28 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
+            } else {
+                return false;
             }
         } else if (actionArray.length == 2) {
+            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
+            if (!mAutoResponse) {
+                return false;
+            }
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
+                return true;
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
+                return true;
             } else {
                 return false;
             }
-            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
         } else if (actionArray.length == 3) {
+            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
+            if (!mAutoResponse) {
+                return false;
+            }
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
@@ -156,7 +169,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else {
                 return false;
             }
-            mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
             batteryThresholdValue = actionArray[2];
 
             try {
