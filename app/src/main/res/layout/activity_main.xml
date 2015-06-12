@@ -10,16 +10,17 @@
         android:id="@+id/service_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
         android:layout_gravity="center_horizontal"
         android:text="Enable Service" />
 
     <EditText
         android:id="@+id/password_entry"
         android:layout_gravity="center_horizontal"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="10dp"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:inputType="textVisiblePassword"
@@ -29,12 +30,21 @@
     <EditText
         android:id="@+id/battery_entry"
         android:layout_gravity="center_horizontal"
-        android:layout_margin="20dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:inputType="number"
         android:hint="Minimum Battery Level"
         android:maxLength="2"/>
+
+    <CheckBox
+        android:id="@+id/responseCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:text="Invalid Command Response"/>
 
     <RelativeLayout
         android:layout_width="fill_parent"

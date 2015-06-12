@@ -9,7 +9,6 @@ import android.os.BatteryManager;
 import android.util.Log;
 import android.widget.Toast;
 
-
 public class BinarySmsReceiver extends BroadcastReceiver {
 
     private String mPassword;
@@ -25,6 +24,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int minutes;
     private int intervals;
     private Context mContext;
+    private boolean mInvalidCommandResponse;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -40,6 +40,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         proceed any further.
          */
         boolean isServiceEnabled = mPreferences.getBoolean("service_state", false);
+        mInvalidCommandResponse = mPreferences.getBoolean("invalid_command_response", false);
         batteryThresholdValue = mPreferences.getString("battery_level", "5");
         if (!isServiceEnabled) {
             Toast.makeText(context, "Service is disabled", Toast.LENGTH_SHORT).show();
@@ -55,26 +56,32 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
         if (!isSmsCommandOfValidLength(smsCommand)) {
             Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+            if (mInvalidCommandResponse) {
+                // TODO: Send SMS Response
+            }
             return;
         }
         mPassword = smsCommand[0];
         if (!isPasswordValid(mPassword)) {
             Log.e(AppGlobals.LOG_TAG, "Invalid Password.");
+            if (mInvalidCommandResponse) {
+                // TODO: Send SMS Response
+            }
             return;
         }
         Intent smsServiceIntent = new Intent(
                 context.getApplicationContext(), AudioRecorderService.class);
 
-        System.out.println(smsCommand.length);
-
         if (smsCommand.length == 2) {
-            System.out.println("Command 2");
             mActionRaw = smsCommand[1];
 
             /* Checks to see if the Command is valid. If yes, progresses further.*/
 
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+                if (mInvalidCommandResponse) {
+                    // TODO: Send SMS Response
+                }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
             } else {
@@ -84,7 +91,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         smsServiceIntent.putExtra("RECORD_TIME", 1000 * 60 * 3600);
                         if (mAutoResponse) {
                             Log.i(AppGlobals.LOG_TAG, "Starting recording, response generated");
-                            // FIXME: Implement sending a response SMS.
+                            // TODO: Implement sending a response SMS.
                         }
                         context.startService(smsServiceIntent);
                     } else {
@@ -97,6 +104,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     } else {
                         Log.i(AppGlobals.LOG_TAG, "No recording in progress");
                     }
+                } else if (mAction.equals("reset")) {
+                    Log.i(AppGlobals.LOG_TAG, "Removing all schedules...");
+                    smsServiceIntent.putExtra("RESET", mAction);
                 }
             }
         } else if (smsCommand.length == 3) {
@@ -104,10 +114,16 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             mTime = smsCommand[2];
             if (!isActionValid(mActionRaw)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+                if (mInvalidCommandResponse) {
+                    // TODO: Send SMS Response
+                }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
             } else if (!isTimeValid(mTime)) {
                 Log.e(AppGlobals.LOG_TAG, "Invalid Command");
+                if (mInvalidCommandResponse) {
+                    // TODO: Send SMS Response
+                }
             } else {
                 Log.i(AppGlobals.LOG_TAG, "Hours" + hours);
                 Log.i(AppGlobals.LOG_TAG, "Minutes" + minutes);
@@ -156,6 +172,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
+            } else if (actionArray[0].equalsIgnoreCase("reset")) {
+                mAction = "reset";
+                return true;
             } else {
                 return false;
             }
@@ -170,6 +189,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
+            } else if (actionArray[0].equalsIgnoreCase("reset")) {
+                mAction = "reset";
+                return true;
             } else {
                 return false;
             }
@@ -182,6 +204,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 mAction = "start";
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
+            } else if (actionArray[0].equalsIgnoreCase("reset")) {
+                mAction = "reset";
+                return true;
             } else {
                 return false;
             }
