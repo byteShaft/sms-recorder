@@ -43,7 +43,6 @@ public class RecordingDatabaseHelper {
     ArrayList<String> retrieveDate(String column) {
         String query = "SELECT * FROM " + SqliteHelpers.TABLE_NAME;
         mCursor = mDbHelper.rawQuery(query, null);
-        mCursor.moveToFirst();
         ArrayList<String> arrayList = new ArrayList<>();
         while (mCursor.moveToNext()) {
             String itemname = mCursor.getString(mCursor.getColumnIndex(column));
