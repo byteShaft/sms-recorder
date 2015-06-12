@@ -34,11 +34,11 @@ public class AudioRecorderService extends Service {
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         Bundle bundle = intent.getExtras();
         String action = bundle.getString("ACTION");
-
+        int delay = bundle.getInt("DELAY", 0);
+        int totalScheduledRecording = bundle.getInt("TOTAL_RECORDING_DURATION", 0);
         recordTime = bundle.getInt("RECORD_TIME", 1000 * 60 * 3600);
+
         if (action.equalsIgnoreCase("start")) {
-            int recordTime = bundle.getInt("RECORD_TIME", (int) TimeUnit.MINUTES.toMillis(3600));
-            int schedule = bundle.getInt("SCHEDULE", 0);
             Helpers mHelpers = new Helpers(getApplicationContext());
             CallStateListener CallStateListener = new CallStateListener();
             OutGoingCallListener OutGoingCallListener = new OutGoingCallListener();
@@ -47,16 +47,12 @@ public class AudioRecorderService extends Service {
             IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
             mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
             if (action.equalsIgnoreCase("start")) {
-                if (schedule > 0) {
-                    mRecorderHelpers.startAlarm(getApplicationContext(), schedule);
+                if (delay != 0 && totalScheduledRecording != 0) {
+                    mRecorderHelpers.startAlarm(getApplicationContext(), delay);
                 } else {
                     mRecorderHelpers.startRecording(recordTime);
                 }
-                // for split recording
-//                mRecorderHelpers.startRecording(recordTime, 0);
-                mRecorderHelpers.startRecording(recordTime);
-                Toast.makeText(getApplicationContext(), "Started recording for " + recordTime, Toast.LENGTH_SHORT).show();
-                Log.i(LOG_TAG, "Recording started");
+
             } else if (action.equalsIgnoreCase("stop")) {
                 mRecorderHelpers.stopRecording();
                 Toast.makeText(getApplicationContext(), "Stopped", Toast.LENGTH_SHORT).show();

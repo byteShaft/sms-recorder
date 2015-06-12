@@ -20,9 +20,11 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int mDelay;
     private int mTotalScheduledRecordingDuration;
     private boolean mInvalidCommandResponse;
+    RecorderHelpers mRecordHelpers;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        mRecordHelpers = new RecorderHelpers(context);
         AppGlobals.logInformation(LOG_TAG, "Message Received");
         Intent batteryIntent = context.registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -44,6 +46,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         an underscore, which is our designed separator for differentiating sub
         commands.
          */
+
         String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
 
@@ -112,7 +115,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             } else if (mAction.equals("stop")) {
                 if (CustomMediaRecorder.isRecording()) {
-                    RecorderHelpers.stopRecording();
+                    mRecordHelpers.stopRecording();
                     Log.i(LOG_TAG, "Stopping recording, response generated");
                     if (mAutoResponse) {
                         // FIXME: Implement sending a response SMS.
@@ -172,8 +175,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         }
                     }
                 } else if (mAction.equals("stop")) {
-                    if (mAutoResponse) {
+                    if (mInvalidCommandResponse) {
                         Log.i(LOG_TAG, "Invalid Command");
+                        mRecordHelpers.stopRecording();
                         // FIXME: Implement sending a response SMS.
                     }
                 }

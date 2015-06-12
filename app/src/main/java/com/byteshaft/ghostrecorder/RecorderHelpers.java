@@ -13,6 +13,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -65,12 +66,12 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 
-    static void stopRecording() {
+     void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
             sRecorder.stop();
             sRecorder.reset();
             sRecorder.release();
-//            cancelAlarm();
+            cancelAlarm();
             sRecorder = null;
         }
     }
@@ -82,19 +83,18 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 
-    public void startAlarm(Context context, int alarmTime) {
+    public void startAlarm(Context context, int delayTime) {
         Intent intent = new Intent("com.byteshaft.startAlarm");
+        Calendar calendar = Calendar.getInstance();
         pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + alarmTime * 1000 * 60, pendingIntent);
-        Toast.makeText(this, "Alarm Set!", Toast.LENGTH_SHORT).show();
-        System.out.println(alarmManager == null);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), delayTime * 1000 * 60, pendingIntent);
     }
 
     public void cancelAlarm() {
         if (alarmManager != null) {
             alarmManager.cancel(pendingIntent);
-            Toast.makeText(this, "Alarm canceled!", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "Alarm canceled!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -111,7 +111,6 @@ public class RecorderHelpers extends ContextWrapper implements
         } else {
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
                     (getApplicationContext());
-            recordingHelper.openDatabase();
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, path);
         }
     }
