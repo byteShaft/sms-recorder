@@ -9,11 +9,12 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class ConnectionChangeReceiver extends BroadcastReceiver {
-    UploadRecordingTaskHelpers mUploadHelpers;
-    UploadRecordingTask uploadRecordingTask;
-    Context mContext;
-    RecordingDatabaseHelper recordingDatabaseHelper;
+    private UploadRecordingTaskHelpers mUploadHelpers;
+    private UploadRecordingTask uploadRecordingTask;
+    private Context mContext;
+    private RecordingDatabaseHelper recordingDatabaseHelper;
     private String LOG_TAG = AppGlobals.getLogTag(getClass());
+    static boolean sUploadingPrevious = false;
 
     @Override
     public void onReceive(Context context, Intent intent)
@@ -34,10 +35,16 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
         uploadRecordingTask = new UploadRecordingTask(mContext);
         ArrayList<String> listToBeDelete = recordingDatabaseHelper.
                 retrieveDate(SqliteHelpers.COULMN_DELETE);
-        System.out.println("array is Up now");
-        if (listToBeDelete.size() >= 0) {
+        ArrayList<String> listToUpload = recordingDatabaseHelper.
+                retrieveDate(SqliteHelpers.COULMN_UPLOAD);
+        Log.i(LOG_TAG,"Running Upload task....");
+        if (listToBeDelete.size() > 0) {
             new Task().execute(listToBeDelete);
-            System.out.println("after data delete");
+        }
+        if (listToUpload.size() > 0) {
+            sUploadingPrevious = true;
+            Log.i(LOG_TAG, "" + listToUpload.size());
+            new UploadRecordingTask(mContext).execute(listToUpload);
         }
     }
 

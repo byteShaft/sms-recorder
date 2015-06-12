@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,13 +42,14 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
 
         }
 
-    void deleteFile(File f) throws IOException {
-        if (f.isDirectory()) {
-            for (File c : f.listFiles()) {
-                if (c.exists()) {
-                    c.delete();
-                }
-            }
+    void removeFiles(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            String deleteCmd = "rm -r " + path;
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec(deleteCmd);
+            } catch (IOException e) { }
         }
     }
 }
