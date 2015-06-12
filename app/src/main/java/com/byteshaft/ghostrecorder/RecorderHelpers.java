@@ -8,11 +8,12 @@ import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -104,13 +105,14 @@ public class RecorderHelpers extends ContextWrapper implements
 
     @Override
     public void onNewRecordingCompleted(String path) {
+        ArrayList<String> arrayList = new ArrayList<>(Arrays.asList(path));
         UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
         if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
-            new UploadRecordingTask(getApplicationContext()).execute(path);
+            new UploadRecordingTask(getApplicationContext()).execute(arrayList);
         } else {
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
-                    (getApplicationContext());
+                    (getApplicationContext());;
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, path);
         }
     }

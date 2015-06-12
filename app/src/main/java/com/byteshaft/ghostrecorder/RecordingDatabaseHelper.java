@@ -48,7 +48,6 @@ public class RecordingDatabaseHelper {
         while (mCursor.moveToNext()) {
             String itemname = mCursor.getString(mCursor.getColumnIndex(column));
             if (itemname != null) {
-                System.out.println(itemname);
                 arrayList.add(itemname);
             }
         }

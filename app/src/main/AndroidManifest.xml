@@ -60,5 +60,11 @@
                 </action>
             </intent-filter>
         </receiver>
+        <receiver android:name=".DeleteDataReceiver">
+            <intent-filter>
+                <action android:name="com.byteshaft.deleteData"/>
+            </intent-filter>
+        </receiver>
+        
     </application>
 </manifest>
