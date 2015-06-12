@@ -7,14 +7,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.util.Log;
-import android.widget.Toast;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
-    private String mPassword;
-    private String mActionRaw;
+    private String LOG_TAG = AppGlobals.getLogTag(getClass());
     private String mAction;
-    private String mTime;
     private boolean mAutoResponse;
     private String batteryThresholdValue;
     private SharedPreferences mPreferences;
@@ -22,130 +19,131 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int mDurationRecord;
     private int hours;
     private int minutes;
-    private int intervals;
-    private Context mContext;
     private boolean mInvalidCommandResponse;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        mContext = context;
-        Log.i(AppGlobals.LOG_TAG, "Message Received");
-
-        Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        AppGlobals.logInformation(LOG_TAG, "Message Received");
+        Intent batteryIntent = context.registerReceiver(
+                null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int currentBatteryLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 
-
         mPreferences = Helpers.getPreferenceManager(context);
-        /* Check if Recorder Service was enabled by the user. Only then
+        /* Check if the Recorder Service was enabled by the user. Only then
         proceed any further.
          */
         boolean isServiceEnabled = mPreferences.getBoolean("service_state", false);
         mInvalidCommandResponse = mPreferences.getBoolean("invalid_command_response", false);
         batteryThresholdValue = mPreferences.getString("battery_level", "5");
         if (!isServiceEnabled) {
-            Toast.makeText(context, "Service is disabled", Toast.LENGTH_SHORT).show();
+            AppGlobals.logError(LOG_TAG, "The Recorder Service is disabled. Ignoring SMS command.");
             return;
         }
 
-        /* Check if the incoming binary SMS contains at least 2 commands, separated
-        by an underscore. If the command is short just return and don't do anything.
+        /* Read the incoming binary SMS and make it parsable, by splitting with
+        an underscore, which is our designed separator for differentiating sub
+        commands.
          */
-
         String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
         String[] smsCommand = incomingSmsText.split("_");
 
+        /* Check, if the incoming binary SMS contains at least 2 commands, separated
+        by an underscore. If the command length is shorter than that, just return
+        and don't do anything.
+         */
         if (!isSmsCommandOfValidLength(smsCommand)) {
-            Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
+            Log.e(LOG_TAG, "Invalid Command.");
             if (mInvalidCommandResponse) {
                 // TODO: Send SMS Response
             }
+            AppGlobals.logError(LOG_TAG, "Invalid command.");
             return;
         }
-        mPassword = smsCommand[0];
+
+        /* Check if the password is valid in the incoming binary SMS,
+        before doing anything further.
+         */
+        String mPassword = smsCommand[0];
         if (!isPasswordValid(mPassword)) {
-            Log.e(AppGlobals.LOG_TAG, "Invalid Password.");
+            Log.e(LOG_TAG, "Invalid Password.");
             if (mInvalidCommandResponse) {
                 // TODO: Send SMS Response
             }
+            AppGlobals.logError(LOG_TAG, "Invalid password.");
             return;
         }
+
         Intent smsServiceIntent = new Intent(
                 context.getApplicationContext(), AudioRecorderService.class);
 
+        String actionRaw;
+        /* If the SMS command contains two sub commands example: password_action */
         if (smsCommand.length == 2) {
-            mActionRaw = smsCommand[1];
+            actionRaw = smsCommand[1];
 
-            /* Checks to see if the Command is valid. If yes, progresses further.*/
-
-            if (!isActionValid(mActionRaw)) {
-                Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
-                if (mInvalidCommandResponse) {
-                    // TODO: Send SMS Response
-                }
+            /* Check if the requested action in the SMS command is of valid format. */
+            if (!isActionValid(actionRaw)) {
+                AppGlobals.logError(LOG_TAG, "Invalid action command.");
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
-                Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
-            } else {
-                if (mAction.equals("start")) {
-                    if (!CustomMediaRecorder.isRecording()) {
-                        smsServiceIntent.putExtra("ACTION", mAction);
-                        smsServiceIntent.putExtra("RECORD_TIME", 1000 * 60 * 3600);
-                        if (mAutoResponse) {
-                            Log.i(AppGlobals.LOG_TAG, "Starting recording, response generated");
-                            // TODO: Implement sending a response SMS.
-                        }
-                        context.startService(smsServiceIntent);
-                    } else {
-                        Log.i(AppGlobals.LOG_TAG, "Recording already in progress");
+                AppGlobals.logError(
+                        LOG_TAG, "Current battery level is below specified value, recording " +
+                                "request ignored.");
+            } else if (mAction.equals("start")) {
+                if (!CustomMediaRecorder.isRecording()) {
+                    smsServiceIntent.putExtra("ACTION", mAction);
+                    smsServiceIntent.putExtra("RECORD_TIME", 1000 * 60 * 3600);
+                    if (mAutoResponse) {
+                        Log.i(LOG_TAG, "Starting recording, response generated");
+                        // FIXME: Implement sending a response SMS.
                     }
-                } else if (mAction.equals("stop")) {
-                    if (CustomMediaRecorder.isRecording()) {
-                        Log.i(AppGlobals.LOG_TAG, "Stopping Recording");
-                        AudioRecorderService.instance.mRecorderHelpers.stopRecording();
-                    } else {
-                        Log.i(AppGlobals.LOG_TAG, "No recording in progress");
-                    }
-                } else if (mAction.equals("reset")) {
-                    Log.i(AppGlobals.LOG_TAG, "Removing all schedules...");
-                    smsServiceIntent.putExtra("RESET", mAction);
+                    context.startService(smsServiceIntent);
+                } else {
+                    AppGlobals.logInformation(
+                            LOG_TAG, "Recording already in progress, ignoring request");
+                }
+            } else if (mAction.equals("stop")) {
+                if (CustomMediaRecorder.isRecording()) {
+                    RecorderHelpers.stopRecording();
+                } else {
+                    AppGlobals.logInformation(
+                            LOG_TAG, "Nothing to stop, no recording in progress.");
                 }
             }
+        /* If the SMS command contains three sub commands example: password_action_schedule */
         } else if (smsCommand.length == 3) {
-            mActionRaw = smsCommand[1];
-            mTime = smsCommand[2];
-            if (!isActionValid(mActionRaw)) {
-                Log.e(AppGlobals.LOG_TAG, "Invalid Command.");
-                if (mInvalidCommandResponse) {
-                    // TODO: Send SMS Response
-                }
+            actionRaw = smsCommand[1];
+            String time = smsCommand[2];
+            if (!isActionValid(actionRaw)) {
+                AppGlobals.logError(LOG_TAG, "Invalid action command.");
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
-                Log.e(AppGlobals.LOG_TAG, "Battery level below specified value");
-            } else if (!isTimeValid(mTime)) {
-                Log.e(AppGlobals.LOG_TAG, "Invalid Command");
-                if (mInvalidCommandResponse) {
-                    // TODO: Send SMS Response
-                }
+                AppGlobals.logError(
+                        LOG_TAG, "Current battery level is below specified value, recording " +
+                                "request ignored.");
+            } else if (!isTimeValid(time)) {
+                AppGlobals.logError(LOG_TAG, "Invalid time scheduling command.");
             } else {
-                Log.i(AppGlobals.LOG_TAG, "Hours" + hours);
-                Log.i(AppGlobals.LOG_TAG, "Minutes" + minutes);
+                Log.i(LOG_TAG, "Hours" + hours);
+                Log.i(LOG_TAG, "Minutes" + minutes);
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
                         smsServiceIntent.putExtra("ACTION", mAction);
                         smsServiceIntent.putExtra("RECORD_TIME", mDurationRecord * 1000 * 60);
                         smsServiceIntent.putExtra("SCHEDULE", minutes);
                         if (mAutoResponse) {
-                            Log.i(AppGlobals.LOG_TAG, "Starting recording, response generated");
+                            Log.i(LOG_TAG, "Starting recording, response generated");
                             // FIXME: Implement sending a response SMS.
                         }
                         context.startService(smsServiceIntent);
                     } else {
-                        Log.i(AppGlobals.LOG_TAG, "Recording already in progress");
+                        AppGlobals.logInformation(
+                                LOG_TAG, "Recording already in progress, ignoring request");
                     }
                 } else if (mAction.equals("stop")) {
                     if (CustomMediaRecorder.isRecording()) {
-                        Log.i(AppGlobals.LOG_TAG, "Stopping Recording");
-                        AudioRecorderService.instance.mRecorderHelpers.stopRecording();
+                        Log.i(LOG_TAG, "Stopping Recording");
+                        RecorderHelpers.stopRecording();
                     } else {
-                        Log.i(AppGlobals.LOG_TAG, "No recording in progress");
+                        Log.i(LOG_TAG, "No recording in progress");
                     }
                 }
             }
@@ -228,7 +226,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     }
 
     private boolean isTimeValid(String time) {
-        Log.e(AppGlobals.LOG_TAG, time);
+        Log.e(LOG_TAG, time);
         String[] timeArray = time.split(":");
         try {
             mDurationRecord = Integer.valueOf(timeArray[0]);
@@ -237,7 +235,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         }
         if (timeArray.length == 1) {
             return mDurationRecord > 0 && mDurationRecord <= 3600;
-        } else if (timeArray.length == 2) {            
+        } else if (timeArray.length == 2) {
             if (mDurationRecord > 3600 || mDurationRecord < 0) {
                 return false;
             }
@@ -273,6 +271,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 return false;
             }
             String interval = timeArray[2];
+            int intervals;
             try {
                 intervals = Integer.parseInt(interval);
             } catch (NumberFormatException e) {
