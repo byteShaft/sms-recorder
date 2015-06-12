@@ -3,15 +3,9 @@ package com.byteshaft.ghostrecorder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.sql.Array;
 import java.util.ArrayList;
 
 public class ConnectionChangeReceiver extends BroadcastReceiver {
@@ -22,7 +16,7 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
     private String LOG_TAG = AppGlobals.getLogTag(getClass());
 
     @Override
-    public void onReceive( Context context, Intent intent )
+    public void onReceive(Context context, Intent intent)
     {
         mContext = context;
         recordingDatabaseHelper = new RecordingDatabaseHelper(mContext);
