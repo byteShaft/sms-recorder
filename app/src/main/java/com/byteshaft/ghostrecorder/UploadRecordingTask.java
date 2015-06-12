@@ -62,6 +62,7 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
                     Log.i(LOG_TAG, "File transfered successfully to host.");
                     FILE_UPLOADED = true;
                     if (ConnectionChangeReceiver.sUploadingPrevious) {
+                        Log.i(LOG_TAG, "BroadCast sent...");
                         Intent intent = new Intent("com.byteshaft.deleteData");
                         intent.putExtra("FILE_NAME", mFileName);
                         mContext.sendBroadcast(intent);
