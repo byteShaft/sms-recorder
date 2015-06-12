@@ -17,8 +17,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private SharedPreferences mPreferences;
     private int batteryValueCheck;
     private int mDurationRecord;
-    private int hours;
-    private int minutes;
+    private int mDelay;
+    private int mTotalScheduledRecordingDuration;
     private boolean mInvalidCommandResponse;
 
     @Override
@@ -51,12 +51,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         by an underscore. If the command length is shorter than that, just return
         and don't do anything.
          */
+
         if (!isSmsCommandOfValidLength(smsCommand)) {
             Log.e(LOG_TAG, "Invalid Command.");
             if (mInvalidCommandResponse) {
-                // TODO: Send SMS Response
+                // FIXME: Send SMS Response
             }
-            AppGlobals.logError(LOG_TAG, "Invalid command.");
+            AppGlobals.logError(LOG_TAG, "Invalid Command.");
             return;
         }
 
@@ -67,9 +68,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (!isPasswordValid(mPassword)) {
             Log.e(LOG_TAG, "Invalid Password.");
             if (mInvalidCommandResponse) {
-                // TODO: Send SMS Response
+                // FIXME: Send SMS Response
             }
-            AppGlobals.logError(LOG_TAG, "Invalid password.");
+            AppGlobals.logError(LOG_TAG, "Invalid Password.");
             return;
         }
 
@@ -84,10 +85,16 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             /* Check if the requested action in the SMS command is of valid format. */
             if (!isActionValid(actionRaw)) {
                 AppGlobals.logError(LOG_TAG, "Invalid action command.");
+                if (mInvalidCommandResponse) {
+                    // FIXME: Send Response SMS
+                }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 AppGlobals.logError(
                         LOG_TAG, "Current battery level is below specified value, recording " +
                                 "request ignored.");
+                if (mAutoResponse) {
+                    // FIXME: Implement sending a response SMS.
+                }
             } else if (mAction.equals("start")) {
                 if (!CustomMediaRecorder.isRecording()) {
                     smsServiceIntent.putExtra("ACTION", mAction);
@@ -100,13 +107,30 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 } else {
                     AppGlobals.logInformation(
                             LOG_TAG, "Recording already in progress, ignoring request");
+                    if (mAutoResponse) {
+                        // FIXME: Implement sending a response SMS.
+                    }
                 }
             } else if (mAction.equals("stop")) {
                 if (CustomMediaRecorder.isRecording()) {
                     RecorderHelpers.stopRecording();
+                    Log.i(LOG_TAG, "Stopping recording, response generated");
+                    if (mAutoResponse) {
+                        // FIXME: Implement sending a response SMS.
+                    }
                 } else {
                     AppGlobals.logInformation(
                             LOG_TAG, "Nothing to stop, no recording in progress.");
+                    if (mAutoResponse) {
+                        // FIXME: Implement sending a response SMS.
+                    }
+                }
+            } else if (mAction.equals("reset")) {
+                smsServiceIntent.putExtra("RESET", mAction);
+                AppGlobals.logInformation(
+                        LOG_TAG, "Reset Command Received, resetting schedules");
+                if (mAutoResponse) {
+                    // FIXME: Implement sending a response SMS.
                 }
             }
         /* If the SMS command contains three sub commands example: password_action_schedule */
@@ -115,20 +139,28 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             String time = smsCommand[2];
             if (!isActionValid(actionRaw)) {
                 AppGlobals.logError(LOG_TAG, "Invalid action command.");
+                if (mInvalidCommandResponse) {
+                    // FIXME: Send SMS Response.
+                }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 AppGlobals.logError(
                         LOG_TAG, "Current battery level is below specified value, recording " +
                                 "request ignored.");
+                if (mAutoResponse) {
+                    // FIXME: Implement sending a response SMS.
+                }
             } else if (!isTimeValid(time)) {
-                AppGlobals.logError(LOG_TAG, "Invalid time scheduling command.");
+                AppGlobals.logError(LOG_TAG, "Invalid time command.");
+                if (mInvalidCommandResponse) {
+                    // FIXME: Implement sending a response SMS.
+                }
             } else {
-                Log.i(LOG_TAG, "Hours" + hours);
-                Log.i(LOG_TAG, "Minutes" + minutes);
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
                         smsServiceIntent.putExtra("ACTION", mAction);
                         smsServiceIntent.putExtra("RECORD_TIME", mDurationRecord * 1000 * 60);
-                        smsServiceIntent.putExtra("SCHEDULE", minutes);
+                        smsServiceIntent.putExtra("DELAY", mDelay);
+                        smsServiceIntent.putExtra("TOTAL_RECORDING_DURATION", mTotalScheduledRecordingDuration);
                         if (mAutoResponse) {
                             Log.i(LOG_TAG, "Starting recording, response generated");
                             // FIXME: Implement sending a response SMS.
@@ -137,13 +169,22 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     } else {
                         AppGlobals.logInformation(
                                 LOG_TAG, "Recording already in progress, ignoring request");
+                        if (mAutoResponse) {
+                            // FIXME: Implement sending a response SMS.
+                        }
                     }
                 } else if (mAction.equals("stop")) {
                     if (CustomMediaRecorder.isRecording()) {
                         Log.i(LOG_TAG, "Stopping Recording");
                         RecorderHelpers.stopRecording();
+                        if (mAutoResponse) {
+                            // FIXME: Implement sending a response SMS.
+                        }
                     } else {
                         Log.i(LOG_TAG, "No recording in progress");
+                        if (mAutoResponse) {
+                            // FIXME: Implement sending a response SMS.
+                        }
                     }
                 }
             }
@@ -178,9 +219,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             }
         } else if (actionArray.length == 2) {
             mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
-            if (!mAutoResponse) {
-                return false;
-            }
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
                 return true;
@@ -195,16 +233,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             }
         } else if (actionArray.length == 3) {
             mAutoResponse = actionArray[1].equalsIgnoreCase("y") || actionArray[1].equalsIgnoreCase("yes");
-            if (!mAutoResponse) {
-                return false;
-            }
             if (actionArray[0].equalsIgnoreCase("start")) {
                 mAction = "start";
-            } else if (actionArray[0].equalsIgnoreCase("stop")) {
-                mAction = "stop";
-            } else if (actionArray[0].equalsIgnoreCase("reset")) {
-                mAction = "reset";
-                return true;
             } else {
                 return false;
             }
@@ -236,48 +266,27 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (timeArray.length == 1) {
             return mDurationRecord > 0 && mDurationRecord <= 3600;
         } else if (timeArray.length == 2) {
-            if (mDurationRecord > 3600 || mDurationRecord < 0) {
-                return false;
-            }
-            String when = timeArray[1];
-            System.out.print(when);
-            if(when.length() != 4){
-                return false;
-            }
-            String[] splitWhen = when.split("(?<=\\G.{2})");
-            try {
-                hours = Integer.parseInt(splitWhen[0]);
-                minutes = Integer.parseInt(splitWhen[1]);
-            } catch (NumberFormatException e) {
-                return false;
-            } if (hours > 23 || minutes > 59) {
-                return false;
-            }
+            return false;
         } else if (timeArray.length == 3){
             if (mDurationRecord > 3600 || mDurationRecord < 0) {
                 return false;
             }
-            String when = timeArray[1];
-            if(when.length() != 4){
-                return false;
-            }
-            String[] splitWhen = when.split("(?<=\\G.{2})");
+            String delay = timeArray[1];
+
             try {
-                hours = Integer.parseInt(splitWhen[0]);
-                minutes = Integer.parseInt(splitWhen[1]);
+                mDelay = Integer.parseInt(delay);
             } catch (NumberFormatException e) {
                 return false;
-            } if (hours > 23 || minutes > 59) {
+            } if (mDelay < 0 || mDelay > 3600) {
                 return false;
             }
-            String interval = timeArray[2];
-            int intervals;
+            String totalDuration = timeArray[2];
             try {
-                intervals = Integer.parseInt(interval);
+                mTotalScheduledRecordingDuration = Integer.parseInt(totalDuration);
             } catch (NumberFormatException e) {
                 return false;
             }
-            if (intervals < 0 || intervals > 10) {
+            if (mTotalScheduledRecordingDuration < 0 || mTotalScheduledRecordingDuration > 3600) {
                 return false;
             }
         } return true;
