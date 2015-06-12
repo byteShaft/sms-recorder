@@ -20,9 +20,11 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int mDelay;
     private int mTotalScheduledRecordingDuration;
     private boolean mInvalidCommandResponse;
+    RecorderHelpers mRecordHelpers;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        mRecordHelpers = new RecorderHelpers(context);
         AppGlobals.logInformation(LOG_TAG, "Message Received");
         Intent batteryIntent = context.registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -113,7 +115,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             } else if (mAction.equals("stop")) {
                 if (CustomMediaRecorder.isRecording()) {
-                    RecorderHelpers.stopRecording();
+                    mRecordHelpers.stopRecording();
                     Log.i(LOG_TAG, "Stopping recording, response generated");
                     if (mAutoResponse) {
                         // FIXME: Implement sending a response SMS.
@@ -176,7 +178,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 } else if (mAction.equals("stop")) {
                     if (CustomMediaRecorder.isRecording()) {
                         Log.i(LOG_TAG, "Stopping Recording");
-                        RecorderHelpers.stopRecording();
+                        mRecordHelpers.stopRecording();
                         if (mAutoResponse) {
                             // FIXME: Implement sending a response SMS.
                         }
