@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -19,6 +20,7 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
     private Button mButtonOk;
     private EditText mPasswordEntry, mBatteryLevelEntry;
     private SharedPreferences mPreferences;
+    private CheckBox mInvalidCommandResponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +32,7 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
         mButtonOk = (Button) findViewById(R.id.button_ok);
         mBatteryLevelEntry = (EditText) findViewById(R.id.battery_entry);
         mPasswordEntry = (EditText) findViewById(R.id.password_entry);
+        mInvalidCommandResponse = (CheckBox) findViewById(R.id.responseCheckbox);
         mPreferences = getPreferenceManager();    }
 
     @Override
@@ -64,6 +67,9 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
                     Toast.makeText(getApplicationContext(), "Service Activated", Toast.LENGTH_SHORT).show();
                     mPreferences.edit().putString("service_password", mPasswordEntry.getText().toString()).apply();
                     mPreferences.edit().putString("battery_level", mBatteryLevelEntry.getText().toString()).apply();
+                    if (mInvalidCommandResponse.isChecked()) {
+                        mPreferences.edit().putBoolean("invalid_command_response", true);
+                    }
                     enableRecorderService(true);
                     finish();
                     /// hide app icon form  app drawer
