@@ -19,7 +19,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class UploadRecordingTaskHelpers extends ContextWrapper {
 
-    private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
+    private final String LOG_TAG = AppGlobals.getLogTag(getClass());
 
     public UploadRecordingTaskHelpers(Context base) {
         super(base);

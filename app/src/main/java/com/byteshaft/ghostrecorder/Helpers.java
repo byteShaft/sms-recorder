@@ -61,7 +61,7 @@ public class Helpers extends ContextWrapper {
         Log.d("Files", "Path: " + path);
         File f = new File(path);
         File file[] = f.listFiles();
-        ArrayList<String> arrayList = new ArrayList<>();
+        ArrayList<String> arrayList = new ArrayList<String>();
         Log.d("Files", "Size: "+ file.length);
         for (int i=0; i < file.length; i++)
         {

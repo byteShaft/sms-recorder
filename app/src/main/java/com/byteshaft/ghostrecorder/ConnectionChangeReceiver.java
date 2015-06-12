@@ -17,9 +17,9 @@ import java.util.ArrayList;
 public class ConnectionChangeReceiver extends BroadcastReceiver {
     UploadRecordingTaskHelpers mUploadHelpers;
     UploadRecordingTask uploadRecordingTask;
-    String LOGTAG = AppGlobals.LOG_TAG + "/"+ getClass().getName();
     Context mContext;
     RecordingDatabaseHelper recordingDatabaseHelper;
+    private String LOG_TAG = AppGlobals.getLogTag(getClass());
 
     @Override
     public void onReceive( Context context, Intent intent )
@@ -30,7 +30,7 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
         if (mUploadHelpers.isNetworkAvailable()) {
             int network = mUploadHelpers.networkAvailable();
             if (network == 0) {
-                Log.i(LOGTAG, "Ping success");
+                Log.i(LOG_TAG, "Ping success");
                 deletePreviousUploadFailFileOnServer();
             }
         }

@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 public class UploadRecordingTask extends AsyncTask<String, Void, String> {
 
-    private final String LOGTAG = AppGlobals.LOG_TAG + "/" + getClass().getName();
+    private final String LOG_TAG = AppGlobals.getLogTag(getClass());
 
     private Session mSession;
     private Channel mChannel;
@@ -54,9 +54,9 @@ public class UploadRecordingTask extends AsyncTask<String, Void, String> {
             File file = new File(params[0]);
             mFileName = file.getName();
             connectToServer(SFTP_HOST, SFTP_PORT, SFTP_USER, SFTP_PASSWORD, SFTP_WORKING_DIR);
-            Log.i(LOGTAG, "file Transfer started...");
+            Log.i(LOG_TAG, "file Transfer started...");
             mChannelSftp.put(new FileInputStream(file), file.getName());
-            Log.i(LOGTAG, "File transfered successfully to host.");
+            Log.i(LOG_TAG, "File transfered successfully to host.");
         } catch (SftpException e) {
             UPLOAD_INTERRUPTED = true;
         } catch (FileNotFoundException e) {
@@ -69,8 +69,8 @@ public class UploadRecordingTask extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String aString) {
         super.onPostExecute(aString);
         if (UPLOAD_INTERRUPTED) {
-            Log.i(LOGTAG, "file upload intruptted");
-            String notUploadedFile = mFileName;
+            Log.i(LOG_TAG, "file upload intruptted");
+            String notUploadedFile = mHelpers.path + mFileName;
             System.out.println(notUploadedFile);
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper(mContext);
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_DELETE, notUploadedFile);
