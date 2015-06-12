@@ -24,7 +24,7 @@ public class RecorderHelpers extends ContextWrapper implements
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
     private int mLoopCounter;
-    private final int MAX_LENGTH = 20000;
+    private final int MAX_LENGTH = 900000;
 
     public RecorderHelpers(Context base) {
         super(base);
@@ -54,7 +54,7 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.start();
     }
 
-    void startRecording(int time, int test) {
+    void startRecording(int time, int splitTime) {
         if (time < MAX_LENGTH) {
             startRecording(time);
         } else {

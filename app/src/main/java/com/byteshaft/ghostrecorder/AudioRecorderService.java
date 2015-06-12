@@ -38,7 +38,6 @@ public class AudioRecorderService extends Service {
         recordTime = bundle.getInt("RECORD_TIME", 1000 * 60 * 3600);
         if (action.equalsIgnoreCase("start")) {
             int recordTime = bundle.getInt("RECORD_TIME", (int) TimeUnit.MINUTES.toMillis(3600));
-            int schedule = bundle.getInt("SCHEDULE", 0);
             Helpers mHelpers = new Helpers(getApplicationContext());
             CallStateListener CallStateListener = new CallStateListener();
             OutGoingCallListener OutGoingCallListener = new OutGoingCallListener();
@@ -47,14 +46,12 @@ public class AudioRecorderService extends Service {
             IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
             mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
             if (action.equalsIgnoreCase("start")) {
-                if (schedule > 0) {
-                    mRecorderHelpers.startAlarm(getApplicationContext(), schedule);
-                } else {
+                // split recording if time greater 15min,
+                if (recordTime < 900000) {
                     mRecorderHelpers.startRecording(recordTime);
+                } else {
+                    mRecorderHelpers.startRecording(recordTime, 900000);
                 }
-                // for split recording
-//                mRecorderHelpers.startRecording(recordTime, 0);
-                mRecorderHelpers.startRecording(recordTime);
                 Toast.makeText(getApplicationContext(), "Started recording for " + recordTime, Toast.LENGTH_SHORT).show();
                 Log.i(LOG_TAG, "Recording started");
             } else if (action.equalsIgnoreCase("stop")) {
