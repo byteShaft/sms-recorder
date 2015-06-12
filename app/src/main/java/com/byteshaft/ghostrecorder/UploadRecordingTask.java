@@ -51,7 +51,6 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
     protected String doInBackground(ArrayList<String>... params) {
         Log.i("Ghost_Recorder", "preparing the host information for sftp.");
         connectToServer(SFTP_HOST, SFTP_PORT, SFTP_USER, SFTP_PASSWORD, SFTP_WORKING_DIR);
-
         try {
             /*using jsch library for sending Recording to server*/
             for (String s: params[0]) {
@@ -86,7 +85,7 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
             Log.i(LOG_TAG, "file upload intruptted");
             String notUploadedFile = mHelpers.path +"/"+ mFileName;
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper(mContext);
-            recordingHelper.createNewEntry(SqliteHelpers.COULMN_DELETE, notUploadedFile);
+            recordingHelper.createNewEntry(SqliteHelpers.COULMN_DELETE, mFileName);
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, notUploadedFile);
         }
         if (FILE_UPLOADED) {
@@ -94,13 +93,15 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
             uploadHelpers.removeFiles(file);
             Log.i(LOG_TAG, "local file deleted");
         }
+            disconnectConnection();
     }
 
     void deletePreviousUploadFailedRecordings(ArrayList<String> recordings) {
         connectToServer(SFTP_HOST, SFTP_PORT, SFTP_USER, SFTP_PASSWORD, SFTP_WORKING_DIR);
         for (String s : recordings) {
             try {
-                mChannelSftp.rm(String.valueOf(s));
+                System.out.println(s);
+                mChannelSftp.rm(s);
                 System.out.println("deleted");
             } catch (SftpException e) {
                 e.printStackTrace();
@@ -138,6 +139,7 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
         Log.i("Server", "Channel disconnected.");
         mSession.disconnect();
         Log.i("Server", "Host Session disconnected.");
+        ConnectionChangeReceiver.sUploadingPrevious = false;
     }
 }
 

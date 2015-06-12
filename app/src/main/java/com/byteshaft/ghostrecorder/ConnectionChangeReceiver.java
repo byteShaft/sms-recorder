@@ -38,12 +38,15 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
         ArrayList<String> listToUpload = recordingDatabaseHelper.
                 retrieveDate(SqliteHelpers.COULMN_UPLOAD);
         Log.i(LOG_TAG,"Running Upload task....");
+        Log.i(LOG_TAG, "" + listToUpload.size());
+        Log.i(LOG_TAG, "" + listToBeDelete.size());
         if (listToBeDelete.size() > 0) {
+            Log.i(LOG_TAG, "to be delete");
             new Task().execute(listToBeDelete);
         }
         if (listToUpload.size() > 0) {
+            Log.i(LOG_TAG, "to be upload");
             sUploadingPrevious = true;
-            Log.i(LOG_TAG, "" + listToUpload.size());
             new UploadRecordingTask(mContext).execute(listToUpload);
         }
     }

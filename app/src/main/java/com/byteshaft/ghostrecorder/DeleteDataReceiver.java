@@ -14,9 +14,10 @@ public class DeleteDataReceiver extends BroadcastReceiver {
         RecordingDatabaseHelper dbHelpers = new RecordingDatabaseHelper(context);
         UploadRecordingTaskHelpers uploadHelpers = new UploadRecordingTaskHelpers(context);
         Helpers helpers = new Helpers(context);
-        dbHelpers.deleteItem(SqliteHelpers.COULMN_UPLOAD, helpers.path + "/" + fileName);
+        dbHelpers.deleteItem(SqliteHelpers.COULMN_UPLOAD,helpers.path+"/"+fileName);
+        dbHelpers.deleteItem(SqliteHelpers.COULMN_DELETE,fileName);
         Log.i(LOG_TAG, "Delete from DB");
-        uploadHelpers.removeFiles(helpers.path +"/"+ fileName);
+        uploadHelpers.removeFiles(helpers.path + "/" + fileName);
         Log.i(LOG_TAG, "local file deleted");
     }
 }
