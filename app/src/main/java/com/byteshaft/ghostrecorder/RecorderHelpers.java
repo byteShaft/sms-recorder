@@ -111,7 +111,6 @@ public class RecorderHelpers extends ContextWrapper implements
         } else {
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
                     (getApplicationContext());
-            recordingHelper.openDatabase();
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, path);
         }
     }
