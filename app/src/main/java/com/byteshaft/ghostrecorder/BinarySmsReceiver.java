@@ -53,7 +53,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
          */
 
         if (!isSmsCommandOfValidLength(smsCommand)) {
-            Log.e(LOG_TAG, "Invalid Command.");
             if (mInvalidCommandResponse) {
                 // FIXME: Send SMS Response
             }
@@ -125,13 +124,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         // FIXME: Implement sending a response SMS.
                     }
                 }
-            } else if (mAction.equals("reset")) {
-                smsServiceIntent.putExtra("RESET", mAction);
-                AppGlobals.logInformation(
-                        LOG_TAG, "Reset Command Received, resetting schedules");
-                if (mAutoResponse) {
-                    // FIXME: Implement sending a response SMS.
-                }
+//            } else if (mAction.equals("reset")) {
+//                smsServiceIntent.putExtra("RESET", mAction);
+//                AppGlobals.logInformation(
+//                        LOG_TAG, "Reset Command Received, resetting schedules");
+//                if (mAutoResponse) {
+//                    // FIXME: Implement sending a response SMS.
+//                }
             }
         /* If the SMS command contains three sub commands example: password_action_schedule */
         } else if (smsCommand.length == 3) {
@@ -167,24 +166,15 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         }
                         context.startService(smsServiceIntent);
                     } else {
-                        AppGlobals.logInformation(
-                                LOG_TAG, "Recording already in progress, ignoring request");
-                        if (mAutoResponse) {
+                        AppGlobals.logError(LOG_TAG, "Invalid Action Command.");
+                        if (mInvalidCommandResponse) {
                             // FIXME: Implement sending a response SMS.
                         }
                     }
                 } else if (mAction.equals("stop")) {
-                    if (CustomMediaRecorder.isRecording()) {
-                        Log.i(LOG_TAG, "Stopping Recording");
-                        RecorderHelpers.stopRecording();
-                        if (mAutoResponse) {
-                            // FIXME: Implement sending a response SMS.
-                        }
-                    } else {
-                        Log.i(LOG_TAG, "No recording in progress");
-                        if (mAutoResponse) {
-                            // FIXME: Implement sending a response SMS.
-                        }
+                    if (mAutoResponse) {
+                        Log.i(LOG_TAG, "Invalid Command");
+                        // FIXME: Implement sending a response SMS.
                     }
                 }
             }
@@ -211,9 +201,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
-            } else if (actionArray[0].equalsIgnoreCase("reset")) {
-                mAction = "reset";
-                return true;
+//            } else if (actionArray[0].equalsIgnoreCase("reset")) {
+//                mAction = "reset";
+//                return true;
             } else {
                 return false;
             }
@@ -225,9 +215,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
-            } else if (actionArray[0].equalsIgnoreCase("reset")) {
-                mAction = "reset";
-                return true;
+//            } else if (actionArray[0].equalsIgnoreCase("reset")) {
+//                mAction = "reset";
+//                return true;
             } else {
                 return false;
             }
