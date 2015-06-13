@@ -174,12 +174,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                             // FIXME: Implement sending a response SMS.
                         }
                     }
-                } else if (mAction.equals("stop")) {
-                    if (mInvalidCommandResponse) {
-                        Log.i(LOG_TAG, "Invalid Command");
-                        mRecordHelpers.stopRecording();
-                        // FIXME: Implement sending a response SMS.
-                    }
                 }
             }
         }
