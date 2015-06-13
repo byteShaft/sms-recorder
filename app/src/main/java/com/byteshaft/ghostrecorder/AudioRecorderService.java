@@ -47,8 +47,8 @@ public class AudioRecorderService extends Service {
             IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
             mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
             if (action.equalsIgnoreCase("start")) {
-                if (delay != 0 && totalScheduledRecording != 0) {
-                    mRecorderHelpers.startAlarm(getApplicationContext(), delay);
+                if (delay > 0 && totalScheduledRecording > 0) {
+                    mRecorderHelpers.startRecording(totalScheduledRecording * 1000 * 60, delay * 1000 * 60, recordTime);
                 } else {
                     mRecorderHelpers.startRecording(recordTime);
                 }
