@@ -70,6 +70,7 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
             mHandler.postDelayed(stopper, mDuration);
         }
         setIsRecording(true);
+        Log.i(LOG_TAG, "Recording Started");
     }
 
     @Override
@@ -89,7 +90,8 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
                 listener.onStop(AppGlobals.STOPPED_AFTER_TIME);
             }
         }
-        Log.i(LOG_TAG, "Stopped recording");
+        Log.i(LOG_TAG, "Recording Stopped");
+
     }
 
     @Override
