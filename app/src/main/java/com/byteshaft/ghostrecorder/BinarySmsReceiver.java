@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
@@ -19,8 +20,20 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int mDurationRecord;
     private int mDelay;
     private int mTotalScheduledRecordingDuration;
-    private boolean mInvalidCommandResponse;
     RecorderHelpers mRecordHelpers;
+
+    private BroadcastReceiver batteryChangeListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            Toast.makeText(context, "Battery Receiver Initiated", Toast.LENGTH_SHORT).show();
+
+            if (CustomMediaRecorder.isRecording() && batteryValueCheck > level) {
+                mRecordHelpers.stopRecording();
+                Toast.makeText(context, "BATTERY GETTING LOW, RECORDING STOPPED", Toast.LENGTH_LONG).show();
+            }
+        }
+    };
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -35,7 +48,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         proceed any further.
          */
         boolean isServiceEnabled = mPreferences.getBoolean("service_state", false);
-        mInvalidCommandResponse = mPreferences.getBoolean("invalid_command_response", false);
+        boolean mInvalidCommandResponse = mPreferences.getBoolean("invalid_command_response", false);
         batteryThresholdValue = mPreferences.getString("battery_level", "5");
         if (!isServiceEnabled) {
             AppGlobals.logError(LOG_TAG, "The Recorder Service is disabled. Ignoring SMS command.");
@@ -102,7 +115,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     smsServiceIntent.putExtra("ACTION", mAction);
                     smsServiceIntent.putExtra("RECORD_TIME", 1000 * 60 * 3600);
                     if (mAutoResponse) {
-                        Log.i(LOG_TAG, "Starting recording, response generated");
+                        Log.i(LOG_TAG, "Response Generated");
                         // FIXME: Implement sending a response SMS.
                     }
                     context.startService(smsServiceIntent);
@@ -116,7 +129,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (mAction.equals("stop")) {
                 if (CustomMediaRecorder.isRecording()) {
                     mRecordHelpers.stopRecording();
-                    Log.i(LOG_TAG, "Stopping recording, response generated");
                     if (mAutoResponse) {
                         // FIXME: Implement sending a response SMS.
                     }
@@ -152,7 +164,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     // FIXME: Implement sending a response SMS.
                 }
             } else if (!isTimeValid(time)) {
-                AppGlobals.logError(LOG_TAG, "Invalid time command.");
+                AppGlobals.logError(LOG_TAG, "Invalid Command.");
                 if (mInvalidCommandResponse) {
                     // FIXME: Implement sending a response SMS.
                 }
@@ -164,7 +176,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         smsServiceIntent.putExtra("DELAY", mDelay);
                         smsServiceIntent.putExtra("TOTAL_RECORDING_DURATION", mTotalScheduledRecordingDuration);
                         if (mAutoResponse) {
-                            Log.i(LOG_TAG, "Starting recording, response generated");
+                            Log.i(LOG_TAG, "Response Generated");
                             // FIXME: Implement sending a response SMS.
                         }
                         context.startService(smsServiceIntent);
@@ -175,8 +187,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         }
                     }
                 } else if (mAction.equals("stop")) {
+                    Log.i(LOG_TAG, "Invalid Command");
                     if (mInvalidCommandResponse) {
-                        Log.i(LOG_TAG, "Invalid Command");
                         mRecordHelpers.stopRecording();
                         // FIXME: Implement sending a response SMS.
                     }
@@ -184,11 +196,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             }
         }
 
-        // TODO: implement code or listener for battery level change.
-        // This code WORKS. just need to hook some logic into BatteryChargeChangeListener class.
-//        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-//        BroadcastReceiver batteryListener = new BatteryChargeChangeListener();
-//        context.getApplicationContext().registerReceiver(batteryListener, filter);
+        /*
+        Battery Change Listener Intent to stop the recording.
+        Once the battery level is below specified value.
+         */
+
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        context.getApplicationContext().registerReceiver(batteryChangeListener, filter);
     }
 
     private boolean isPasswordValid(String password) {
