@@ -61,6 +61,7 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.setAudioEncodingBitRate(16000);
         sRecorder.setDuration(time);
         sRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
+        System.out.println("Recording for: " + time);
 
         try {
             sRecorder.prepare();
@@ -148,8 +149,7 @@ public class RecorderHelpers extends ContextWrapper implements
                     mCompleteRepeats--;
                     return;
                 } else if (mPartialRepeats != 0) {
-                    int time = (int) (mRecordingGap * mPartialRepeats);
-                    System.out.println("Final recrod for " + time);
+                    int time = (int) (mRecordingInstance * mPartialRepeats);
                     Intent intent = new Intent("com.byteshaft.startAlarm");
                     intent.putExtra("RECORD_TIME", time);
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
