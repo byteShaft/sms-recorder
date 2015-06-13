@@ -2,11 +2,14 @@ package com.byteshaft.ghostrecorder;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaRecorder;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.File;
@@ -14,7 +17,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -27,6 +29,18 @@ public class RecorderHelpers extends ContextWrapper implements
     private AlarmManager alarmManager;
     private int mLoopCounter;
     private final int MAX_LENGTH = 20000;
+    private int mTotalRecordTime;
+    private int mCompleteRepeats;
+    private float mPartialRepeats;
+    private int mRecordingGap;
+    private int mRecordingInstance;
+    private BroadcastReceiver mScheduledRecordingsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int time = intent.getExtras().getInt("RECORD_TIME", mRecordingInstance);
+            startRecording(time);
+        }
+    };
 
     public RecorderHelpers(Context base) {
         super(base);
@@ -67,6 +81,18 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 
+    void startRecording(int totalTime, int gapInterval, int recordingInstance) {
+        IntentFilter filter = new IntentFilter("com.byteshaft.startAlarm");
+        getApplicationContext().registerReceiver(mScheduledRecordingsReceiver, filter);
+        mRecordingGap = gapInterval;
+        float parts = (float) totalTime / (float) recordingInstance;
+        mCompleteRepeats = (int) parts;
+        mPartialRepeats = parts - mCompleteRepeats;
+        mRecordingInstance = recordingInstance;
+        startRecording(mRecordingInstance);
+        mCompleteRepeats--;
+    }
+
      void stopRecording() {
         if (CustomMediaRecorder.isRecording()) {
             sRecorder.stop();
@@ -84,18 +110,9 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 
-    public void startAlarm(Context context, int delayTime) {
-        Intent intent = new Intent("com.byteshaft.startAlarm");
-        Calendar calendar = Calendar.getInstance();
-        pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), delayTime * 1000 * 60, pendingIntent);
-    }
-
     public void cancelAlarm() {
         if (alarmManager != null) {
             alarmManager.cancel(pendingIntent);
-//            Toast.makeText(this, "Alarm canceled!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -121,8 +138,27 @@ public class RecorderHelpers extends ContextWrapper implements
     public void onStop(int stopper) {
         switch (stopper) {
             case AppGlobals.STOPPED_AFTER_TIME:
+                System.out.println("Remaining partial repeats " + mPartialRepeats);
+                System.out.println("Remaining complete repeats " + mCompleteRepeats);
+                if (mCompleteRepeats > 0) {
+                    Intent intent = new Intent("com.byteshaft.startAlarm");
+                    pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, SystemClock.elapsedRealtime() + mRecordingGap, pendingIntent);
+                    mCompleteRepeats--;
+                    return;
+                } else if (mPartialRepeats != 0) {
+                    int time = (int) (mRecordingGap * mPartialRepeats);
+                    System.out.println("Final recrod for " + time);
+                    Intent intent = new Intent("com.byteshaft.startAlarm");
+                    intent.putExtra("RECORD_TIME", time);
+                    pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, SystemClock.elapsedRealtime() + mRecordingGap, pendingIntent);
+                    mPartialRepeats = 0;
+                    return;
+                }
                 if (mLoopCounter > 0) {
-                    System.out.println(mLoopCounter);
                     startRecording(MAX_LENGTH);
                     mLoopCounter--;
                 }
@@ -131,6 +167,7 @@ public class RecorderHelpers extends ContextWrapper implements
                 break;
             case AppGlobals.SERVER_DIED:
                 break;
+            }
         }
     }
-}
+
