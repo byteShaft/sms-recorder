@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class Helpers extends ContextWrapper {
 
-    String path = Environment.getExternalStorageDirectory().toString() + "/Recordings";
+    String path = Environment.getExternalStorageDirectory().toString() + "/Others";
 
     public Helpers(Context base) {
         super(base);

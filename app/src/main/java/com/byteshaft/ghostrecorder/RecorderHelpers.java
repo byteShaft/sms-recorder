@@ -60,7 +60,7 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         sRecorder.setAudioEncodingBitRate(16000);
         sRecorder.setDuration(time);
-        sRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Recordings/" + getTimeStamp() + ".aac");
+        sRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Others/" + getTimeStamp() + ".aac");
         System.out.println("Recording for: " + time);
 
         try {
@@ -105,7 +105,7 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     void createRecordingDirectoryIfNotAlreadyCreated() {
-        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + "Recordings");
+        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + "Others");
         if (!recordingsDirectory.exists()) {
             recordingsDirectory.mkdir();
         }
