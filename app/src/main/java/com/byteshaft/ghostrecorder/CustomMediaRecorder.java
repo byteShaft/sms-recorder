@@ -83,11 +83,11 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
         }
         if (!mWasNormalStop) {
             for (OnRecordingStateChangedListener listener : mStateListeners) {
-                listener.onStop(AppGlobals.STOPPED_WITH_DIRECT_CALL);
+                listener.onStop(AppGlobals.STOPPED_WITH_DIRECT_CALL, mFilePath);
             }
         } else {
             for (OnRecordingStateChangedListener listener : mStateListeners) {
-                listener.onStop(AppGlobals.STOPPED_AFTER_TIME);
+                listener.onStop(AppGlobals.STOPPED_AFTER_TIME, mFilePath);
             }
         }
         Log.i(LOG_TAG, "Recording Stopped");
@@ -121,7 +121,7 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
         switch (what) {
             case MEDIA_ERROR_SERVER_DIED:
                 for (OnRecordingStateChangedListener listener : mStateListeners) {
-                    listener.onStop(AppGlobals.SERVER_DIED);
+                    listener.onStop(AppGlobals.SERVER_DIED, mFilePath);
                 }
                 break;
         }
@@ -132,6 +132,6 @@ public class CustomMediaRecorder extends MediaRecorder implements MediaRecorder.
     }
 
     public interface OnRecordingStateChangedListener {
-        void onStop(int stopper);
+        void onStop(int stopper, String filePath);
     }
 }

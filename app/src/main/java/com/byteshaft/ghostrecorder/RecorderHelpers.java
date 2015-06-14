@@ -31,7 +31,7 @@ public class RecorderHelpers extends ContextWrapper implements
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
     private int mLoopCounter;
-    private final int FIFTEEN_MINUTES = (int) TimeUnit.MINUTES.toMillis(15);
+    private final int FIFTEEN_MINUTES = 10000;
     private int mCompleteRepeats;
     private float mPartialRepeats;
     private int mRecordingGap;
@@ -44,7 +44,8 @@ public class RecorderHelpers extends ContextWrapper implements
         @Override
         public void onReceive(Context context, Intent intent) {
             int time = intent.getExtras().getInt("RECORD_TIME", mRecordingInstance);
-            startRecording(time, null);
+            String fileName = intent.getExtras().getString("FILE_NAME", null);
+            startRecording(time, fileName);
         }
     };
 
@@ -102,6 +103,7 @@ public class RecorderHelpers extends ContextWrapper implements
         float parts = (float) time / (float) splitDuration;
         mSplitFull = (int) parts;
         mSplitPartial = parts - mSplitFull;
+        System.out.println(mSplitDuration);
         startRecording(mSplitDuration, null);
     }
 
@@ -161,11 +163,12 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     @Override
-    public void onStop(int stopper) {
+    public void onStop(int stopper, String fileName) {
         switch (stopper) {
             case AppGlobals.STOPPED_AFTER_TIME:
                 if (mCompleteRepeats > 0) {
                     Intent intent = new Intent("com.byteshaft.startAlarm");
+                    intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
                     alarmManager.set(AlarmManager.RTC_WAKEUP, SystemClock.elapsedRealtime() + mRecordingGap, pendingIntent);
@@ -174,6 +177,7 @@ public class RecorderHelpers extends ContextWrapper implements
                 } else if (mPartialRepeats != 0) {
                     int time = (int) (mRecordingInstance * mPartialRepeats);
                     Intent intent = new Intent("com.byteshaft.startAlarm");
+                    intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     intent.putExtra("RECORD_TIME", time);
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
@@ -183,13 +187,13 @@ public class RecorderHelpers extends ContextWrapper implements
                 }
 
                 if (mSplitFull > 0) {
-                    startRecording(mSplitDuration, null);
+                    startRecording(mSplitDuration, getFileNameForNextRecording(fileName));
                     mSplitFull--;
                     return;
                 }
 
                 if (mSplitPartial > 0) {
-                    startRecording((int) (mSplitDuration * mSplitPartial), null);
+                    startRecording((int) (mSplitDuration * mSplitPartial), getFileNameForNextRecording(fileName));
                     mSplitPartial = 0;
                 }
                 break;
@@ -198,6 +202,23 @@ public class RecorderHelpers extends ContextWrapper implements
                 break;
             case AppGlobals.SERVER_DIED:
                 break;
+        }
+    }
+
+    private String getFileNameForNextRecording(String currentPath) {
+        File file = new File(currentPath);
+        String name = file.getName();
+        String nameNoExtension = name.substring(0, name.lastIndexOf('.'));
+        String[] title = nameNoExtension.split("-");
+
+        if (title.length == 1) {
+            return title[0] + "-" + "1";
+        } else if (title.length == 2) {
+            String baseName = title[0];
+            int iterator = Integer.valueOf(title[1]) + 1;
+            return baseName + "-" + iterator;
+        } else {
+            return null;
         }
     }
 }
