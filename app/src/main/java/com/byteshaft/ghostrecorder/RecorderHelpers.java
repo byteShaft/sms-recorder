@@ -14,11 +14,13 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnNewFileWrittenListener,
@@ -117,7 +119,9 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     private String getTimeStamp() {
-        return new SimpleDateFormat("yyyyMMddhhmmss", Locale.US).format(new Date());
+        SimpleDateFormat dateFormatGmt = new SimpleDateFormat("yyyyMMddhhmmss");
+        dateFormatGmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return dateFormatGmt.format(new Date());
     }
 
     @Override
