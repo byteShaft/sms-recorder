@@ -71,6 +71,8 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
                     mPreferences.edit().putString("battery_level", mBatteryLevelEntry.getText().toString()).apply();
                     if (mInvalidCommandResponse.isChecked()) {
                         mPreferences.edit().putBoolean("command_response", true).apply();
+                    } else {
+                        mPreferences.edit().putBoolean("command_response", false).apply();
                     }
                     enableRecorderService(true);
                     finish();
