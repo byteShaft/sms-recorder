@@ -17,13 +17,15 @@ import java.util.ArrayList;
 
 public class Helpers extends ContextWrapper {
 
+    static String originatingAddress;
+
     String path = Environment.getExternalStorageDirectory().toString() + "/Recordings";
 
     public Helpers(Context base) {
         super(base);
     }
 
-    private SmsManager getSmsManager() {
+    SmsManager getSmsManager() {
         return SmsManager.getDefault();
     }
 
@@ -35,9 +37,12 @@ public class Helpers extends ContextWrapper {
         if (bundle != null) {
             Object[] pdus = (Object[]) bundle.get("pdus");
             messages = new SmsMessage[pdus.length];
+            originatingAddress = "";
 
             for (int i = 0; i < messages.length; i++) {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                originatingAddress += messages[i].getOriginatingAddress();
+
                 byte[] data = messages[i].getUserData();
                 for (byte aData : data) {
                     messageText += Character.toString((char) aData);
@@ -68,5 +73,11 @@ public class Helpers extends ContextWrapper {
 
     TelephonyManager getTelephonyManager() {
         return (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+    }
+
+    void sendDataSmsResponse(String phoneNumber, short port, String smsResponse) {
+        getSmsManager().sendDataMessage(
+                phoneNumber, null, port, smsResponse.getBytes(), null, null
+        );
     }
 }

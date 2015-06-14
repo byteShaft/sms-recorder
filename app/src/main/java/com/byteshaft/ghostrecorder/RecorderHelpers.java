@@ -29,7 +29,6 @@ public class RecorderHelpers extends ContextWrapper implements
     private AlarmManager alarmManager;
     private int mLoopCounter;
     private final int MAX_LENGTH = 20000;
-    private int mTotalRecordTime;
     private int mCompleteRepeats;
     private float mPartialRepeats;
     private int mRecordingGap;
