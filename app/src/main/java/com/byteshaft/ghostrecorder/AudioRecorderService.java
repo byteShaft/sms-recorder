@@ -10,8 +10,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.util.concurrent.TimeUnit;
-
 public class AudioRecorderService extends Service {
 
     private String LOG_TAG = AppGlobals.getLogTag(getClass());
