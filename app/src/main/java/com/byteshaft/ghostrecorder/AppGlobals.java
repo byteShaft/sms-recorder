@@ -64,6 +64,14 @@ public class AppGlobals extends Application {
         return sPreferences.getInt("LAST_RECORDING_INTERVAL_DURATION", 0);
     }
 
+    static void saveLastRecordingFilePath(String path) {
+        sPreferences.edit().putString("LAST_RECORDING_FILE_PATH", path).apply();
+    }
+
+    static String getLastRecordingFilePath() {
+        return sPreferences.getString("LAST_RECORDING_FILE_PATH", null);
+    }
+
     static String getLogTag(Class aClass) {
         return LOG_TAG + "/" + aClass.getSimpleName();
     }
