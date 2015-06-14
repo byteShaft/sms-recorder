@@ -6,11 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
-import android.os.SystemClock;
 import android.util.Log;
-import android.widget.Toast;
-
-import java.util.concurrent.TimeUnit;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
@@ -54,6 +50,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
         boolean isServiceEnabled = mPreferences.getBoolean("service_state", false);
         boolean mInvalidCommandResponse = mPreferences.getBoolean("command_response", false);
+
         batteryThresholdValue = mPreferences.getString("battery_level", "5");
         if (!isServiceEnabled) {
             AppGlobals.logError(LOG_TAG, "The Recorder Service is disabled. Ignoring SMS command.");
@@ -186,7 +183,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         AppGlobals.saveLastRecordingRequestRecordIntervalDuration(Helpers.minutesToMillis(mDurationRecord));
                         if (mAutoResponse) {
                             Log.i(LOG_TAG, "Response Generated");
-                            mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
+
+                            if (mDelay > 0) {
+                                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started. Schedule initiated.");
+                            } else {
+                                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
+                            }
+
                         }
                         context.startService(smsServiceIntent);
                     } else {
@@ -288,7 +291,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } catch (NumberFormatException e) {
                 return false;
             }
-            if (mDelay < 0 || mDelay > 3600) {
+            if (mDelay < 1 || mDelay > 3600) {
                 return false;
             }
             String totalDuration = timeArray[2];
