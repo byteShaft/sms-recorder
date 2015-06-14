@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnNewFileWrittenListener,
@@ -30,11 +31,15 @@ public class RecorderHelpers extends ContextWrapper implements
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
     private int mLoopCounter;
-    private final int MAX_LENGTH = 20000;
+    private final int FIFTEEN_MINUTES = (int) TimeUnit.MINUTES.toMillis(15);
     private int mCompleteRepeats;
     private float mPartialRepeats;
     private int mRecordingGap;
     private int mRecordingInstance;
+    private int mSplitFull;
+    private float mSplitPartial;
+    private int mSplitDuration;
+
     private BroadcastReceiver mScheduledRecordingsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -47,11 +52,12 @@ public class RecorderHelpers extends ContextWrapper implements
         super(base);
     }
 
-    void startRecording(int time, String fileName) {
+    private void startRecording(int time, String fileName) {
         if (CustomMediaRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
             return;
         }
+
         if (fileName == null) {
             fileName = getTimeStamp();
         }
@@ -66,26 +72,37 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.setAudioEncodingBitRate(16000);
         sRecorder.setDuration(time);
         sRecorder.setOutputFile(path);
-        System.out.println("Recording for: " + time);
 
         try {
             sRecorder.prepare();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Recording for: " + time);
         sRecorder.start();
         AppGlobals.saveLastRecordingFilePath(path);
     }
 
-    void startRecording(int time, int test) {
-        if (time < MAX_LENGTH) {
-            startRecording(time, null);
-        } else {
-            if (mLoopCounter == 0) {
-                mLoopCounter = time / MAX_LENGTH;
-            }
-            startRecording(MAX_LENGTH, null);
+    void startRecording(int time, String fileName, int splitDuration) {
+        if (fileName == null) {
+            fileName = getTimeStamp();
         }
+
+        if (splitDuration == 0) {
+            mSplitDuration = FIFTEEN_MINUTES;
+        } else {
+            mSplitDuration = splitDuration;
+        }
+
+        if (time < splitDuration) {
+            startRecording(time, fileName);
+            return;
+        }
+
+        float parts = (float) time / (float) splitDuration;
+        mSplitFull = (int) parts;
+        mSplitPartial = parts - mSplitFull;
+        startRecording(mSplitDuration, null);
     }
 
     void startRecording(int totalTime, int gapInterval, int recordingInstance) {
@@ -164,9 +181,16 @@ public class RecorderHelpers extends ContextWrapper implements
                     mPartialRepeats = 0;
                     return;
                 }
-                if (mLoopCounter > 0) {
-                    startRecording(MAX_LENGTH, null);
-                    mLoopCounter--;
+
+                if (mSplitFull > 0) {
+                    startRecording(mSplitDuration, null);
+                    mSplitFull--;
+                    return;
+                }
+
+                if (mSplitPartial > 0) {
+                    startRecording((int) (mSplitDuration * mSplitPartial), null);
+                    mSplitPartial = 0;
                 }
                 break;
             case AppGlobals.STOPPED_WITH_DIRECT_CALL:
