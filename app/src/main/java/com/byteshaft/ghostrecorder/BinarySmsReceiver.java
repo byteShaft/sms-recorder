@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.util.concurrent.TimeUnit;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
@@ -26,11 +29,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            Toast.makeText(context, "Battery Receiver Initiated", Toast.LENGTH_SHORT).show();
-
             if (CustomMediaRecorder.isRecording() && batteryValueCheck > level) {
                 mRecordHelpers.stopRecording();
-                Toast.makeText(context, "BATTERY GETTING LOW, RECORDING STOPPED", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -112,8 +112,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             } else if (mAction.equals("start")) {
                 if (!CustomMediaRecorder.isRecording()) {
-                    smsServiceIntent.putExtra("ACTION", mAction);
-                    smsServiceIntent.putExtra("RECORD_TIME", 1000 * 60 * 3600);
+                    AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
+                    AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(3600));
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
                         // FIXME: Implement sending a response SMS.
@@ -171,10 +171,10 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else {
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
-                        smsServiceIntent.putExtra("ACTION", mAction);
-                        smsServiceIntent.putExtra("RECORD_TIME", mDurationRecord * 1000 * 60);
-                        smsServiceIntent.putExtra("DELAY", mDelay);
-                        smsServiceIntent.putExtra("TOTAL_RECORDING_DURATION", mTotalScheduledRecordingDuration);
+                        AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
+                        AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(mTotalScheduledRecordingDuration));
+                        AppGlobals.saveLastRecordingRequestGapDuration(Helpers.minutesToMillis(mDelay));
+                        AppGlobals.saveLastRecordingRequestRecordIntervalDuration(Helpers.minutesToMillis(mDurationRecord));
                         if (mAutoResponse) {
                             Log.i(LOG_TAG, "Response Generated");
                             // FIXME: Implement sending a response SMS.

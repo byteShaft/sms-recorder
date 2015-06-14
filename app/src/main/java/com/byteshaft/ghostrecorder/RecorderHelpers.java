@@ -164,6 +164,7 @@ public class RecorderHelpers extends ContextWrapper implements
                 }
                 break;
             case AppGlobals.STOPPED_WITH_DIRECT_CALL:
+                Helpers.resetAllRecordTimes();
                 break;
             case AppGlobals.SERVER_DIED:
                 break;
