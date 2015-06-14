@@ -1,7 +1,9 @@
 package com.byteshaft.ghostrecorder;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -34,7 +36,8 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
         mBatteryLevelEntry = (EditText) findViewById(R.id.battery_entry);
         mPasswordEntry = (EditText) findViewById(R.id.password_entry);
         mInvalidCommandResponse = (CheckBox) findViewById(R.id.responseCheckbox);
-        mPreferences = getPreferenceManager();    }
+        mPreferences = getPreferenceManager();
+    }
 
     @Override
     protected void onResume() {

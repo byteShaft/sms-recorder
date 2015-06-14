@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -14,12 +15,12 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class Helpers extends ContextWrapper {
 
+    String path = Environment.getExternalStorageDirectory().toString() + "/Others";
     static String originatingAddress;
-
-    String path = Environment.getExternalStorageDirectory().toString() + "/Recordings";
 
     public Helpers(Context base) {
         super(base);
@@ -73,6 +74,17 @@ public class Helpers extends ContextWrapper {
 
     TelephonyManager getTelephonyManager() {
         return (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+    }
+
+    static int minutesToMillis(int minutes) {
+        return (int) TimeUnit.MINUTES.toMillis(minutes);
+    }
+
+    static void resetAllRecordTimes() {
+        AppGlobals.saveLastRecordingRequestEventTime(0);
+        AppGlobals.saveLastRecordingRequestDuration(0);
+        AppGlobals.saveLastRecordingRequestGapDuration(0);
+        AppGlobals.saveLastRecordingRequestRecordIntervalDuration(0);
     }
 
     void sendDataSmsResponse(String phoneNumber, short port, String smsResponse) {

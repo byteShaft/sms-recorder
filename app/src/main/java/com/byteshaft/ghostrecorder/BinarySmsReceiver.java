@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.util.concurrent.TimeUnit;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
@@ -27,11 +30,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            Toast.makeText(context, "Battery Receiver Initiated", Toast.LENGTH_SHORT).show();
-
             if (CustomMediaRecorder.isRecording() && batteryValueCheck > level) {
                 mRecordHelpers.stopRecording();
-                Toast.makeText(context, "BATTERY GETTING LOW, RECORDING STOPPED", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -121,8 +121,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             } else if (mAction.equals("start")) {
                 if (!CustomMediaRecorder.isRecording()) {
-                    smsServiceIntent.putExtra("ACTION", mAction);
-                    smsServiceIntent.putExtra("RECORD_TIME", 1000 * 60 * 3600);
+                    AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
+                    AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(3600));
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
                         mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
@@ -152,68 +152,65 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "No Recording in progress");
                     }
                 }
-
-        /* If the SMS command contains three sub commands example: password_action_schedule */
-            } else if (smsCommand.length == 3) {
-                actionRaw = smsCommand[1];
-                String time = smsCommand[2];
-                if (!isActionValid(actionRaw)) {
-                    AppGlobals.logError(LOG_TAG, "Invalid Command.");
-                    if (mInvalidCommandResponse) {
-                        Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
-                    }
-                } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
-                    AppGlobals.logError(
-                            LOG_TAG, "Current battery level is below specified value, recording " +
-                                    "request ignored.");
-                    if (mAutoResponse) {
-                        Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Battery level below specified value");
-                    }
-                } else if (!isTimeValid(time)) {
-                    AppGlobals.logError(LOG_TAG, "Invalid Command.");
-                    if (mInvalidCommandResponse) {
-                        Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
-                    }
-                } else {
-                    if (mAction.equals("start")) {
-                        if (!CustomMediaRecorder.isRecording()) {
-                            smsServiceIntent.putExtra("ACTION", mAction);
-                            smsServiceIntent.putExtra("RECORD_TIME", mDurationRecord * 1000 * 60);
-                            smsServiceIntent.putExtra("DELAY", mDelay);
-                            smsServiceIntent.putExtra("TOTAL_RECORDING_DURATION", mTotalScheduledRecordingDuration);
-                            if (mAutoResponse) {
-                                Log.i(LOG_TAG, "Response Generated");
-                                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
-                            }
-                            context.startService(smsServiceIntent);
-                        } else {
-                            AppGlobals.logError(LOG_TAG, "Invalid Action Command.");
-                            if (mInvalidCommandResponse) {
-                                Log.i(LOG_TAG, "Response Generated");
-                                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
-                            }
+            }
+            /* If the SMS command contains three sub commands example: password_action_schedule */
+        } else if (smsCommand.length == 3) {
+            actionRaw = smsCommand[1];
+            String time = smsCommand[2];
+            if (!isActionValid(actionRaw)) {
+                AppGlobals.logError(LOG_TAG, "Invalid action command.");
+                if (mInvalidCommandResponse) {
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                }
+            } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
+                AppGlobals.logError(
+                        LOG_TAG, "Current battery level is below specified value, recording " +
+                                "request ignored.");
+                if (mAutoResponse) {
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Battery level below specified value");
+                }
+            } else if (!isTimeValid(time)) {
+                AppGlobals.logError(LOG_TAG, "Invalid Command.");
+                if (mInvalidCommandResponse) {
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                }
+            } else {
+                if (mAction.equals("start")) {
+                    if (!CustomMediaRecorder.isRecording()) {
+                        AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
+                        AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(mTotalScheduledRecordingDuration));
+                        AppGlobals.saveLastRecordingRequestGapDuration(Helpers.minutesToMillis(mDelay));
+                        AppGlobals.saveLastRecordingRequestRecordIntervalDuration(Helpers.minutesToMillis(mDurationRecord));
+                        if (mAutoResponse) {
+                            Log.i(LOG_TAG, "Response Generated");
+                            mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
                         }
-                    } else if (mAction.equals("stop")) {
-                        Log.i(LOG_TAG, "Invalid Command");
+                        context.startService(smsServiceIntent);
+                    } else {
+                        AppGlobals.logError(LOG_TAG, "Invalid Action Command.");
                         if (mInvalidCommandResponse) {
                             Log.i(LOG_TAG, "Response Generated");
                             mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
                         }
                     }
+                } else if (mAction.equals("stop")) {
+                    Log.i(LOG_TAG, "Invalid Command");
+                    if (mInvalidCommandResponse) {
+                        Log.i(LOG_TAG, "Response Generated");
+                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                    }
                 }
             }
-
-        /*
+        }
+             /*
         Battery Change Listener Intent to stop the recording.
         Once the battery level is below specified value.
          */
-
-            IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-            context.getApplicationContext().registerReceiver(batteryChangeListener, filter);
-        }
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        context.getApplicationContext().registerReceiver(batteryChangeListener, filter);
     }
 
     private boolean isPasswordValid(String password) {
@@ -280,7 +277,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             return mDurationRecord > 0 && mDurationRecord <= 3600;
         } else if (timeArray.length == 2) {
             return false;
-        } else if (timeArray.length == 3){
+        } else if (timeArray.length == 3) {
             if (mDurationRecord > 3600 || mDurationRecord < 0) {
                 return false;
             }
@@ -290,7 +287,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 mDelay = Integer.parseInt(delay);
             } catch (NumberFormatException e) {
                 return false;
-            } if (mDelay < 0 || mDelay > 3600) {
+            }
+            if (mDelay < 0 || mDelay > 3600) {
                 return false;
             }
             String totalDuration = timeArray[2];
@@ -302,6 +300,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             if (mTotalScheduledRecordingDuration < 0 || mTotalScheduledRecordingDuration > 3600) {
                 return false;
             }
-        } return true;
+        }
+        return true;
     }
 }
