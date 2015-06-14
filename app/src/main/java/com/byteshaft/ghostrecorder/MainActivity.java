@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -71,7 +72,7 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
                     mPreferences.edit().putString("service_password", mPasswordEntry.getText().toString()).apply();
                     mPreferences.edit().putString("battery_level", mBatteryLevelEntry.getText().toString()).apply();
                     if (mInvalidCommandResponse.isChecked()) {
-                        mPreferences.edit().putBoolean("invalid_command_response", true);
+                        mPreferences.edit().putBoolean("command_response", true);
                     }
                     enableRecorderService(true);
                     finish();

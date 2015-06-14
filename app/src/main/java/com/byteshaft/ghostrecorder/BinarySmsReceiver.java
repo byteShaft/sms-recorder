@@ -24,6 +24,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int mDelay;
     private int mTotalScheduledRecordingDuration;
     RecorderHelpers mRecordHelpers;
+    Helpers mHelpers;
 
     private BroadcastReceiver batteryChangeListener = new BroadcastReceiver() {
         @Override
@@ -38,17 +39,21 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         mRecordHelpers = new RecorderHelpers(context);
+        mHelpers = new Helpers(context);
+        short responsePort = 6743;
         AppGlobals.logInformation(LOG_TAG, "Message Received");
         Intent batteryIntent = context.registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int currentBatteryLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 
         mPreferences = Helpers.getPreferenceManager(context);
+
         /* Check if the Recorder Service was enabled by the user. Only then
         proceed any further.
          */
+
         boolean isServiceEnabled = mPreferences.getBoolean("service_state", false);
-        boolean mInvalidCommandResponse = mPreferences.getBoolean("invalid_command_response", false);
+        boolean mInvalidCommandResponse = mPreferences.getBoolean("command_response", false);
         batteryThresholdValue = mPreferences.getString("battery_level", "5");
         if (!isServiceEnabled) {
             AppGlobals.logError(LOG_TAG, "The Recorder Service is disabled. Ignoring SMS command.");
@@ -61,6 +66,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
          */
 
         String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
+        Log.i(LOG_TAG, "Originating Address: " + Helpers.originatingAddress);
         String[] smsCommand = incomingSmsText.split("_");
 
         /* Check, if the incoming binary SMS contains at least 2 commands, separated
@@ -69,10 +75,11 @@ public class BinarySmsReceiver extends BroadcastReceiver {
          */
 
         if (!isSmsCommandOfValidLength(smsCommand)) {
-            if (mInvalidCommandResponse) {
-                // FIXME: Send SMS Response
-            }
             AppGlobals.logError(LOG_TAG, "Invalid Command.");
+            if (mInvalidCommandResponse) {
+                mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Command");
+                Log.i(LOG_TAG, "Response Generated");
+            }
             return;
         }
 
@@ -83,9 +90,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         if (!isPasswordValid(mPassword)) {
             Log.e(LOG_TAG, "Invalid Password.");
             if (mInvalidCommandResponse) {
-                // FIXME: Send SMS Response
+                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Password");
+                Log.i(LOG_TAG, "Response Generated");
             }
-            AppGlobals.logError(LOG_TAG, "Invalid Password.");
             return;
         }
 
@@ -99,16 +106,18 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
             /* Check if the requested action in the SMS command is of valid format. */
             if (!isActionValid(actionRaw)) {
-                AppGlobals.logError(LOG_TAG, "Invalid action command.");
+                AppGlobals.logError(LOG_TAG, "Invalid Command");
                 if (mInvalidCommandResponse) {
-                    // FIXME: Send Response SMS
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
                 }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 AppGlobals.logError(
                         LOG_TAG, "Current battery level is below specified value, recording " +
                                 "request ignored.");
                 if (mAutoResponse) {
-                    // FIXME: Implement sending a response SMS.
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Battery level is lower than specified value.");
                 }
             } else if (mAction.equals("start")) {
                 if (!CustomMediaRecorder.isRecording()) {
@@ -116,57 +125,57 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(3600));
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
-                        // FIXME: Implement sending a response SMS.
+                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
+
                     }
                     context.startService(smsServiceIntent);
                 } else {
                     AppGlobals.logInformation(
                             LOG_TAG, "Recording already in progress, ignoring request");
                     if (mAutoResponse) {
-                        // FIXME: Implement sending a response SMS.
+                        Log.i(LOG_TAG, "Response Generated");
+                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording already in progress");
                     }
                 }
             } else if (mAction.equals("stop")) {
                 if (CustomMediaRecorder.isRecording()) {
                     mRecordHelpers.stopRecording();
                     if (mAutoResponse) {
-                        // FIXME: Implement sending a response SMS.
+                        Log.i(LOG_TAG, "Response Generated");
+                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Stopped");
                     }
                 } else {
                     AppGlobals.logInformation(
                             LOG_TAG, "Nothing to stop, no recording in progress.");
                     if (mAutoResponse) {
-                        // FIXME: Implement sending a response SMS.
+                        Log.i(LOG_TAG, "Response Generated");
+                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "No Recording in progress");
                     }
                 }
-//            } else if (mAction.equals("reset")) {
-//                smsServiceIntent.putExtra("RESET", mAction);
-//                AppGlobals.logInformation(
-//                        LOG_TAG, "Reset Command Received, resetting schedules");
-//                if (mAutoResponse) {
-//                    // FIXME: Implement sending a response SMS.
-//                }
             }
-        /* If the SMS command contains three sub commands example: password_action_schedule */
+            /* If the SMS command contains three sub commands example: password_action_schedule */
         } else if (smsCommand.length == 3) {
             actionRaw = smsCommand[1];
             String time = smsCommand[2];
             if (!isActionValid(actionRaw)) {
                 AppGlobals.logError(LOG_TAG, "Invalid action command.");
                 if (mInvalidCommandResponse) {
-                    // FIXME: Send SMS Response.
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
                 }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 AppGlobals.logError(
                         LOG_TAG, "Current battery level is below specified value, recording " +
                                 "request ignored.");
                 if (mAutoResponse) {
-                    // FIXME: Implement sending a response SMS.
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Battery level below specified value");
                 }
             } else if (!isTimeValid(time)) {
                 AppGlobals.logError(LOG_TAG, "Invalid Command.");
                 if (mInvalidCommandResponse) {
-                    // FIXME: Implement sending a response SMS.
+                    Log.i(LOG_TAG, "Response Generated");
+                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
                 }
             } else {
                 if (mAction.equals("start")) {
@@ -177,24 +186,29 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         AppGlobals.saveLastRecordingRequestRecordIntervalDuration(Helpers.minutesToMillis(mDurationRecord));
                         if (mAutoResponse) {
                             Log.i(LOG_TAG, "Response Generated");
-                            // FIXME: Implement sending a response SMS.
+                            mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
                         }
                         context.startService(smsServiceIntent);
                     } else {
                         AppGlobals.logError(LOG_TAG, "Invalid Action Command.");
                         if (mInvalidCommandResponse) {
-                            // FIXME: Implement sending a response SMS.
+                            Log.i(LOG_TAG, "Response Generated");
+                            mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
                         }
+                    }
+                } else if (mAction.equals("stop")) {
+                    Log.i(LOG_TAG, "Invalid Command");
+                    if (mInvalidCommandResponse) {
+                        Log.i(LOG_TAG, "Response Generated");
+                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
                     }
                 }
             }
         }
-
-        /*
+             /*
         Battery Change Listener Intent to stop the recording.
         Once the battery level is below specified value.
          */
-
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         context.getApplicationContext().registerReceiver(batteryChangeListener, filter);
     }
@@ -213,9 +227,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
-//            } else if (actionArray[0].equalsIgnoreCase("reset")) {
-//                mAction = "reset";
-//                return true;
             } else {
                 return false;
             }
@@ -227,9 +238,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (actionArray[0].equalsIgnoreCase("stop")) {
                 mAction = "stop";
                 return true;
-//            } else if (actionArray[0].equalsIgnoreCase("reset")) {
-//                mAction = "reset";
-//                return true;
             } else {
                 return false;
             }
@@ -269,7 +277,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             return mDurationRecord > 0 && mDurationRecord <= 3600;
         } else if (timeArray.length == 2) {
             return false;
-        } else if (timeArray.length == 3){
+        } else if (timeArray.length == 3) {
             if (mDurationRecord > 3600 || mDurationRecord < 0) {
                 return false;
             }
@@ -279,7 +287,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 mDelay = Integer.parseInt(delay);
             } catch (NumberFormatException e) {
                 return false;
-            } if (mDelay < 0 || mDelay > 3600) {
+            }
+            if (mDelay < 0 || mDelay > 3600) {
                 return false;
             }
             String totalDuration = timeArray[2];
@@ -291,6 +300,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             if (mTotalScheduledRecordingDuration < 0 || mTotalScheduledRecordingDuration > 3600) {
                 return false;
             }
-        } return true;
+        }
+        return true;
     }
 }
