@@ -39,7 +39,7 @@ public class RecorderHelpers extends ContextWrapper implements
         @Override
         public void onReceive(Context context, Intent intent) {
             int time = intent.getExtras().getInt("RECORD_TIME", mRecordingInstance);
-            startRecording(time);
+            startRecording(time, null);
         }
     };
 
@@ -47,11 +47,15 @@ public class RecorderHelpers extends ContextWrapper implements
         super(base);
     }
 
-    void startRecording(int time) {
+    void startRecording(int time, String fileName) {
         if (CustomMediaRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
             return;
         }
+        if (fileName == null) {
+            fileName = getTimeStamp();
+        }
+        String path = Environment.getExternalStorageDirectory() + "/" + "Others/" + fileName + ".aac";
         sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
@@ -61,7 +65,7 @@ public class RecorderHelpers extends ContextWrapper implements
         sRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         sRecorder.setAudioEncodingBitRate(16000);
         sRecorder.setDuration(time);
-        sRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/" + "Others/" + getTimeStamp() + ".aac");
+        sRecorder.setOutputFile(path);
         System.out.println("Recording for: " + time);
 
         try {
@@ -70,16 +74,17 @@ public class RecorderHelpers extends ContextWrapper implements
             e.printStackTrace();
         }
         sRecorder.start();
+        AppGlobals.saveLastRecordingFilePath(path);
     }
 
     void startRecording(int time, int test) {
         if (time < MAX_LENGTH) {
-            startRecording(time);
+            startRecording(time, null);
         } else {
             if (mLoopCounter == 0) {
                 mLoopCounter = time / MAX_LENGTH;
             }
-            startRecording(MAX_LENGTH);
+            startRecording(MAX_LENGTH, null);
         }
     }
 
@@ -91,7 +96,7 @@ public class RecorderHelpers extends ContextWrapper implements
         mCompleteRepeats = (int) parts;
         mPartialRepeats = parts - mCompleteRepeats;
         mRecordingInstance = recordingInstance;
-        startRecording(mRecordingInstance);
+        startRecording(mRecordingInstance, null);
         mCompleteRepeats--;
     }
 
@@ -160,7 +165,7 @@ public class RecorderHelpers extends ContextWrapper implements
                     return;
                 }
                 if (mLoopCounter > 0) {
-                    startRecording(MAX_LENGTH);
+                    startRecording(MAX_LENGTH, null);
                     mLoopCounter--;
                 }
                 break;
@@ -169,7 +174,7 @@ public class RecorderHelpers extends ContextWrapper implements
                 break;
             case AppGlobals.SERVER_DIED:
                 break;
-            }
         }
     }
+}
 
