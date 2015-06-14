@@ -142,8 +142,6 @@ public class RecorderHelpers extends ContextWrapper implements
     public void onStop(int stopper) {
         switch (stopper) {
             case AppGlobals.STOPPED_AFTER_TIME:
-                System.out.println("Remaining partial repeats " + mPartialRepeats);
-                System.out.println("Remaining complete repeats " + mCompleteRepeats);
                 if (mCompleteRepeats > 0) {
                     Intent intent = new Intent("com.byteshaft.startAlarm");
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
