@@ -1,13 +1,10 @@
 package com.byteshaft.ghostrecorder;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -43,6 +40,7 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
     protected void onResume() {
         super.onResume();
         mServiceSwitch.setChecked(mPreferences.getBoolean("service_state", false));
+        mInvalidCommandResponse.setChecked(mPreferences.getBoolean("command_response", false));
     }
 
     @Override
@@ -66,13 +64,13 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
         switch (v.getId()) {
             case R.id.button_ok:
                 if (TextUtils.isEmpty(mPasswordEntry.getText()) ||  TextUtils.isEmpty(mBatteryLevelEntry.getText())) {
-                    Toast.makeText(getApplicationContext(), "One of more fields are empty", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "One or more fields are empty", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(getApplicationContext(), "Service Activated", Toast.LENGTH_SHORT).show();
                     mPreferences.edit().putString("service_password", mPasswordEntry.getText().toString()).apply();
                     mPreferences.edit().putString("battery_level", mBatteryLevelEntry.getText().toString()).apply();
                     if (mInvalidCommandResponse.isChecked()) {
-                        mPreferences.edit().putBoolean("command_response", true);
+                        mPreferences.edit().putBoolean("command_response", true).apply();
                     }
                     enableRecorderService(true);
                     finish();
