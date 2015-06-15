@@ -93,7 +93,7 @@ public class AudioRecorderService extends Service {
                     if (CustomMediaRecorder.isRecording()) {
                         mRecorderHelpers.stopRecording();
                     }
-                    break;
+                break;
             }
         }
     };

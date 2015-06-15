@@ -9,19 +9,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaRecorder;
 import android.os.Environment;
-import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnNewFileWrittenListener,
@@ -38,6 +34,7 @@ public class RecorderHelpers extends ContextWrapper implements
     private int mSplitFull;
     private float mSplitPartial;
     private int mSplitDuration;
+    private boolean mScheduleEnded;
 
     private BroadcastReceiver mScheduledRecordingsReceiver = new BroadcastReceiver() {
         @Override
@@ -172,6 +169,7 @@ public class RecorderHelpers extends ContextWrapper implements
                     alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
                     alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
                     mCompleteRepeats--;
+                    mScheduleEnded = true;
                     return;
                 } else if (mPartialRepeats != 0) {
                     int time = (int) (mRecordingInstance * mPartialRepeats);
@@ -182,7 +180,12 @@ public class RecorderHelpers extends ContextWrapper implements
                     alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                     alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
                     mPartialRepeats = 0;
+                    mScheduleEnded = true;
                     return;
+                }
+
+                if (mScheduleEnded) {
+                    Helpers.sendDataSmsResponse(Helpers.originatingAddress, BinarySmsReceiver.responsePort, "Recording Stopped. Schedule Completed.");
                 }
 
                 if (mSplitFull > 0) {
@@ -221,4 +224,3 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 }
-
