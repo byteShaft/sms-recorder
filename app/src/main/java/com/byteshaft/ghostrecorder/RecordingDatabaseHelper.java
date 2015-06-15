@@ -11,9 +11,9 @@ import java.util.ArrayList;
 public class RecordingDatabaseHelper {
 
     private final String LOG_TAG = AppGlobals.getLogTag(getClass());
-    SQLiteDatabase mDbHelper;
-    SqliteHelpers mSqliteHelper;
-    Cursor mCursor;
+    private SQLiteDatabase mDbHelper;
+    private SqliteHelpers mSqliteHelper;
+    private Cursor mCursor;
 
     public RecordingDatabaseHelper(Context context) {
         mSqliteHelper = new SqliteHelpers(context);
