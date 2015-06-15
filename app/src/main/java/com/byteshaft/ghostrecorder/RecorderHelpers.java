@@ -170,7 +170,7 @@ public class RecorderHelpers extends ContextWrapper implements
                     intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, SystemClock.elapsedRealtime() + mRecordingGap, pendingIntent);
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
                     mCompleteRepeats--;
                     return;
                 } else if (mPartialRepeats != 0) {
@@ -179,8 +179,8 @@ public class RecorderHelpers extends ContextWrapper implements
                     intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     intent.putExtra("RECORD_TIME", time);
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, SystemClock.elapsedRealtime() + mRecordingGap, pendingIntent);
+                    alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
                     mPartialRepeats = 0;
                     return;
                 }
