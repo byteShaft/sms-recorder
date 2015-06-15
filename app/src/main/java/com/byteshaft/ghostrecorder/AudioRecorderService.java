@@ -14,6 +14,7 @@ public class AudioRecorderService extends Service {
     private static AudioRecorderService sInstance;
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
+    private boolean mStoppedOnCall;
 
     private void setInstance(AudioRecorderService service) {
         sInstance = service;
@@ -25,29 +26,15 @@ public class AudioRecorderService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (AppGlobals.getLastRecordingFilePath() != null && intent == null) {
+            RecordingDatabaseHelper helpers = new RecordingDatabaseHelper(getApplicationContext());
+            helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());
+            AppGlobals.saveLastRecordingFilePath(null);
+        }
         setInstance(this);
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
-        long requestTime = AppGlobals.getLastRecordingRequestEventTime();
-        int delay = AppGlobals.getLastRecordingRequestGapDuration();
-        int recordInterval = AppGlobals.getLastRecordingRequestRecordIntervalDuration();
-        recordTime = AppGlobals.getLastRecordingRequestDuration();
-
-        if (System.currentTimeMillis() >= requestTime + recordTime) {
-            /* Don't do anything as the time has passed, probably because the
-            device was turned off. Stop the service. */
-            stopSelf();
-        }
-
-        int potentialTime = getCalculatedTime(recordTime, delay, recordInterval);
-        int totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + potentialTime);
-        System.out.println(totalRemainingTime);
-
-        if (delay == 0 && recordInterval == 0 && totalRemainingTime > 0) {
-            mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
-        } else if (delay > 0 && totalRemainingTime > 0) {
-            mRecorderHelpers.startRecording(totalRemainingTime, delay, recordInterval);
-        }
+        readSettingsAndStartRecording();
 
         Helpers mHelpers = new Helpers(getApplicationContext());
         TelephonyManager telephonyManager = mHelpers.getTelephonyManager();
@@ -68,6 +55,29 @@ public class AudioRecorderService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void readSettingsAndStartRecording() {
+        long requestTime = AppGlobals.getLastRecordingRequestEventTime();
+        int delay = AppGlobals.getLastRecordingRequestGapDuration();
+        int recordInterval = AppGlobals.getLastRecordingRequestRecordIntervalDuration();
+        recordTime = AppGlobals.getLastRecordingRequestDuration();
+
+        if (System.currentTimeMillis() >= requestTime + recordTime) {
+            /* Don't do anything as the time has passed, probably because the
+            device was turned off. Stop the service. */
+            stopSelf();
+        }
+
+        int potentialTime = getCalculatedTime(recordTime, delay, recordInterval);
+        int totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + potentialTime);
+        System.out.println(totalRemainingTime);
+
+        if (delay == 0 && recordInterval == 0 && totalRemainingTime > 0) {
+            mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
+        } else if (delay > 0 && totalRemainingTime > 0) {
+            mRecorderHelpers.startRecording(totalRemainingTime, delay, recordInterval);
+        }
     }
 
     private int getCalculatedTime(int recordTime, int gapInterval, int recordInterval) {
@@ -92,8 +102,15 @@ public class AudioRecorderService extends Service {
                 case TelephonyManager.CALL_STATE_RINGING:
                     if (CustomMediaRecorder.isRecording()) {
                         mRecorderHelpers.stopRecording();
+                        mStoppedOnCall = true;
                     }
-                break;
+                    break;
+                case TelephonyManager.CALL_STATE_IDLE:
+                    if (mStoppedOnCall) {
+                        readSettingsAndStartRecording();
+                        mStoppedOnCall = false;
+                    }
+                    break;
             }
         }
     };
@@ -103,6 +120,7 @@ public class AudioRecorderService extends Service {
         public void onReceive(Context context, Intent intent) {
             if (CustomMediaRecorder.isRecording()) {
                 mRecorderHelpers.stopRecording();
+                mStoppedOnCall = true;
             }
         }
     };
