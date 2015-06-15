@@ -6,15 +6,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class BinarySmsReceiver extends BroadcastReceiver {
 
     private String LOG_TAG = AppGlobals.getLogTag(getClass());
     private String mAction;
-    private boolean mAutoResponse;
+    static boolean mAutoResponse;
     private String batteryThresholdValue;
     private SharedPreferences mPreferences;
     private int batteryValueCheck;
@@ -23,6 +21,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int mTotalScheduledRecordingDuration;
     RecorderHelpers mRecordHelpers;
     Helpers mHelpers;
+    static short responsePort = 6743;
 
     private BroadcastReceiver batteryChangeListener = new BroadcastReceiver() {
         @Override
@@ -38,7 +37,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         mRecordHelpers = new RecorderHelpers(context);
         mHelpers = new Helpers(context);
-        short responsePort = 6743;
         AppGlobals.logInformation(LOG_TAG, "Message Received");
         Intent batteryIntent = context.registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -85,11 +83,12 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         /* Check if the password is valid in the incoming binary SMS,
         before doing anything further.
          */
+
         String mPassword = smsCommand[0];
         if (!isPasswordValid(mPassword)) {
             Log.e(LOG_TAG, "Invalid Password.");
             if (mInvalidCommandResponse) {
-                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Password");
+                mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Password");
                 Log.i(LOG_TAG, "Response Generated");
             }
             return;
@@ -108,7 +107,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 AppGlobals.logError(LOG_TAG, "Invalid Command");
                 if (mInvalidCommandResponse) {
                     Log.i(LOG_TAG, "Response Generated");
-                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                    mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Command");
                 }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 AppGlobals.logError(
@@ -116,7 +115,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                                 "request ignored.");
                 if (mAutoResponse) {
                     Log.i(LOG_TAG, "Response Generated");
-                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Battery level is lower than specified value.");
+                    mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Battery level is lower than specified value.");
                 }
             } else if (mAction.equals("start")) {
                 if (!CustomMediaRecorder.isRecording()) {
@@ -124,7 +123,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(3600));
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
+                        mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording Started");
 
                     }
                     context.startService(smsServiceIntent);
@@ -133,7 +132,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                             LOG_TAG, "Recording already in progress, ignoring request");
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording already in progress");
+                        mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording already in progress");
                     }
                 }
             } else if (mAction.equals("stop")) {
@@ -141,14 +140,14 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     mRecordHelpers.stopRecording();
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Stopped");
+                        mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording Stopped");
                     }
                 } else {
                     AppGlobals.logInformation(
                             LOG_TAG, "Nothing to stop, no recording in progress.");
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "No Recording in progress");
+                        mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "No Recording in progress");
                     }
                 }
             }
@@ -160,7 +159,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 AppGlobals.logError(LOG_TAG, "Invalid action command.");
                 if (mInvalidCommandResponse) {
                     Log.i(LOG_TAG, "Response Generated");
-                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                    mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Command");
                 }
             } else if (mAction.equals("start") && batteryValueCheck > currentBatteryLevel) {
                 AppGlobals.logError(
@@ -168,13 +167,13 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                                 "request ignored.");
                 if (mAutoResponse) {
                     Log.i(LOG_TAG, "Response Generated");
-                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Battery level below specified value");
+                    mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Battery level below specified value");
                 }
             } else if (!isTimeValid(time)) {
                 AppGlobals.logError(LOG_TAG, "Invalid Command.");
                 if (mInvalidCommandResponse) {
                     Log.i(LOG_TAG, "Response Generated");
-                    mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                    mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Command");
                 }
             } else {
                 if (mAction.equals("start")) {
@@ -187,9 +186,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                             Log.i(LOG_TAG, "Response Generated");
 
                             if (mDelay > 0) {
-                                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started. Schedule initiated.");
+                                mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording Started. Schedule initiated.");
                             } else {
-                                mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Recording Started");
+                                mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording Started");
                             }
 
                         }
@@ -198,22 +197,24 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         AppGlobals.logError(LOG_TAG, "Invalid Action Command.");
                         if (mInvalidCommandResponse) {
                             Log.i(LOG_TAG, "Response Generated");
-                            mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                            mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Command");
                         }
                     }
                 } else if (mAction.equals("stop")) {
                     Log.i(LOG_TAG, "Invalid Command");
                     if (mInvalidCommandResponse) {
                         Log.i(LOG_TAG, "Response Generated");
-                        mHelpers.sendDataSmsResponse(mHelpers.originatingAddress, responsePort, "Invalid Command");
+                        mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Invalid Command");
                     }
                 }
             }
         }
+        
              /*
         Battery Change Listener Intent to stop the recording.
         Once the battery level is below specified value.
          */
+
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         context.getApplicationContext().registerReceiver(batteryChangeListener, filter);
     }
@@ -303,6 +304,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 return false;
             }
             if (mTotalScheduledRecordingDuration < 0 || mTotalScheduledRecordingDuration > 3600) {
+                return false;
+            }
+            if (mDurationRecord > mTotalScheduledRecordingDuration) {
                 return false;
             }
         }

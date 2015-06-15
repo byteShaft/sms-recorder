@@ -25,7 +25,7 @@ public class Helpers extends ContextWrapper {
         super(base);
     }
 
-    SmsManager getSmsManager() {
+    static SmsManager getSmsManager() {
         return SmsManager.getDefault();
     }
 
@@ -86,7 +86,7 @@ public class Helpers extends ContextWrapper {
         AppGlobals.saveLastRecordingRequestRecordIntervalDuration(0);
     }
 
-    void sendDataSmsResponse(String phoneNumber, short port, String smsResponse) {
+    static void sendDataSmsResponse(String phoneNumber, short port, String smsResponse) {
         getSmsManager().sendDataMessage(
                 phoneNumber, null, port, smsResponse.getBytes(), null, null
         );

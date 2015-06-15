@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 public class AudioRecorderService extends Service {
 
@@ -111,6 +110,7 @@ public class AudioRecorderService extends Service {
                         readSettingsAndStartRecording();
                         mStoppedOnCall = false;
                     }
+                    break;
             }
         }
     };
