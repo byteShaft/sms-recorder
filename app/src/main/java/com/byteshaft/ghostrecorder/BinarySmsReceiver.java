@@ -18,7 +18,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int batteryValueCheck;
     private int mDurationRecord;
     private int mDelay;
-//    private int mTotalScheduledRecordingDuration;
     RecorderHelpers mRecordHelpers;
     Helpers mHelpers;
     static short responsePort = 6743;

@@ -13,7 +13,6 @@ public class AppGlobals extends Application {
     static final int STOPPED_AFTER_TIME = 101;
     static final int STOPPED_WITH_DIRECT_CALL = 102;
     private static final String LOG_TAG = "SPY";
-    private static Context mContext;
     private static SharedPreferences sPreferences;
 
     @Override

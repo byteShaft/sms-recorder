@@ -11,18 +11,9 @@ import android.telephony.TelephonyManager;
 
 public class AudioRecorderService extends Service {
 
-    private static AudioRecorderService sInstance;
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
     private boolean mStoppedOnCall;
-
-    private void setInstance(AudioRecorderService service) {
-        sInstance = service;
-    }
-
-    static AudioRecorderService getInstance() {
-        return sInstance;
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -31,7 +22,6 @@ public class AudioRecorderService extends Service {
             helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());
             AppGlobals.saveLastRecordingFilePath(null);
         }
-        setInstance(this);
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         readSettingsAndStartRecording();

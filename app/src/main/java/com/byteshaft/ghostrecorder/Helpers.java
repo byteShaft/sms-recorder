@@ -57,20 +57,6 @@ public class Helpers extends ContextWrapper {
         return PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
     }
 
-    ArrayList<String> getAllFilesFromDir() {
-        Log.d("Files", "Path: " + path);
-        File f = new File(path);
-        File file[] = f.listFiles();
-        ArrayList<String> arrayList = new ArrayList<String>();
-        Log.d("Files", "Size: "+ file.length);
-        for (int i=0; i < file.length; i++)
-        {
-            arrayList.add(file[i].getName());
-            Log.d("Files", "FileName:" + file[i].getName());
-        }
-        return arrayList;
-    }
-
     TelephonyManager getTelephonyManager() {
         return (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
     }
