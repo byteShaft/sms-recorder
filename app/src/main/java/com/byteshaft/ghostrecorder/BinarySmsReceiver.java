@@ -38,6 +38,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         mRecordHelpers = new RecorderHelpers(context);
         mHelpers = new Helpers(context);
+        Helpers.resetAllRecordTimes();
         AppGlobals.logInformation(LOG_TAG, "Message Received");
         Intent batteryIntent = context.registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -138,6 +139,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     }
                 }
             } else if (mAction.equals("stop")) {
+                RecorderHelpers.cancelAlarm();
                 if (CustomMediaRecorder.isRecording()) {
                     mRecordHelpers.stopRecording();
                     if (mAutoResponse) {
