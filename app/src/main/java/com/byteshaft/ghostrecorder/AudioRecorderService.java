@@ -63,7 +63,7 @@ public class AudioRecorderService extends Service {
         if (delay == 0 && recordInterval == 0) {
             totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + recordTime);
             if (totalRemainingTime > 0) {
-                mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
+                mRecorderHelpers.startRecording(totalRemainingTime, 0);
             }
         } else if (delay > 0 && recordInterval > 0) {
             int potentialTime = getCalculatedTime(recordTime, delay, recordInterval);
