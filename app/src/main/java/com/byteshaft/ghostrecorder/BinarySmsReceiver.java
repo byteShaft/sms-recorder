@@ -38,7 +38,6 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         mRecordHelpers = new RecorderHelpers(context);
         mHelpers = new Helpers(context);
         Helpers.resetAllRecordTimes();
-        AppGlobals.logInformation(LOG_TAG, "Message Received");
         Intent batteryIntent = context.registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int currentBatteryLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -64,7 +63,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
          */
 
         String incomingSmsText = Helpers.decodeIncomingSmsText(intent);
-        Log.i(LOG_TAG, "Originating Address: " + Helpers.originatingAddress);
+        Log.i(LOG_TAG, "Message Received: " + incomingSmsText);
         String[] smsCommand = incomingSmsText.split("_");
 
         /* Check, if the incoming binary SMS contains at least 2 commands, separated
