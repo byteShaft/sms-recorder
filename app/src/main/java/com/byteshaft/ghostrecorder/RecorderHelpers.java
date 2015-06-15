@@ -24,8 +24,8 @@ public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnRecordingStateChangedListener {
 
     private static CustomMediaRecorder sRecorder;
-    private PendingIntent pendingIntent;
-    private AlarmManager alarmManager;
+    private static PendingIntent pendingIntent;
+    private static AlarmManager alarmManager;
     private final int FIFTEEN_MINUTES = 15 * 1000 * 60;
     private int mCompleteRepeats;
     private float mPartialRepeats;
@@ -133,8 +133,8 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 
-    public void cancelAlarm() {
-        if (alarmManager != null) {
+    static void cancelAlarm() {
+        if (alarmManager != null && pendingIntent != null) {
             alarmManager.cancel(pendingIntent);
         }
     }
