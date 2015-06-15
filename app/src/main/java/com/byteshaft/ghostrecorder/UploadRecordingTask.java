@@ -34,12 +34,14 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
     private String SFTP_WORKING_DIR;
     private boolean FILE_UPLOADED = false;
     private UploadRecordingTaskHelpers uploadHelpers;
+    private RecordingDatabaseHelper dbHelpers;
 
     public UploadRecordingTask(Context context) {
         super();
         mContext = context;
         mHelpers = new Helpers(context.getApplicationContext());
         uploadHelpers = new UploadRecordingTaskHelpers(mContext);
+        dbHelpers = new RecordingDatabaseHelper(context);
         SFTP_HOST = mContext.getString(R.string.sftp_host);
         SFTP_PORT = mContext.getString(R.string.sftp_port);
         SFTP_USER = mContext.getString(R.string.sftp_username);
@@ -141,6 +143,7 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
         mSession.disconnect();
         Log.i("Server", "Host Session disconnected.");
         ConnectionChangeReceiver.sUploadingPrevious = false;
+        dbHelpers.closeDatabase();
     }
 }
 
