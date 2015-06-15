@@ -19,7 +19,6 @@ public class RecordingDatabaseHelper {
         mSqliteHelper = new SqliteHelpers(context);
         mDbHelper = mSqliteHelper.getWritableDatabase();
         mDbHelper = mSqliteHelper.getReadableDatabase();
-
     }
 
     void createNewEntry(String column, String value) {
@@ -33,13 +32,7 @@ public class RecordingDatabaseHelper {
         mDbHelper.delete(SqliteHelpers.TABLE_NAME, column + " = ?", new String[]{value});
         Log.i(LOG_TAG, "Entry deleted");
     }
-
-    void closeDatabase() {
-        mSqliteHelper.close();
-        mCursor.close();
-        Log.i(LOG_TAG, "close database");
-    }
-
+    
     ArrayList<String> retrieveDate(String column) {
         String query = "SELECT * FROM " + SqliteHelpers.TABLE_NAME;
         mCursor = mDbHelper.rawQuery(query, null);
