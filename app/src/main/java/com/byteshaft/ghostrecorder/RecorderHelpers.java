@@ -30,8 +30,7 @@ public class RecorderHelpers extends ContextWrapper implements
     private static CustomMediaRecorder sRecorder;
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
-    private int mLoopCounter;
-    private final int FIFTEEN_MINUTES = 10000;
+    private final int FIFTEEN_MINUTES = 15 * 1000 * 60;
     private int mCompleteRepeats;
     private float mPartialRepeats;
     private int mRecordingGap;
