@@ -43,8 +43,7 @@ public class RecorderHelpers extends ContextWrapper implements
         @Override
         public void onReceive(Context context, Intent intent) {
             int time = intent.getExtras().getInt("RECORD_TIME", mRecordingInstance);
-            String fileName = intent.getExtras().getString("FILE_NAME", null);
-            startRecording(time, fileName);
+            startRecording(time);
         }
     };
 
@@ -52,16 +51,12 @@ public class RecorderHelpers extends ContextWrapper implements
         super(base);
     }
 
-    private void startRecording(int time, String fileName) {
+    private void startRecording(int time) {
         if (CustomMediaRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
             return;
         }
-
-        if (fileName == null) {
-            fileName = getTimeStamp();
-        }
-        String path = Environment.getExternalStorageDirectory() + "/" + "Others/" + fileName + ".aac";
+        String path = Environment.getExternalStorageDirectory() + "/" + "Others/" + getTimeStamp() + ".aac";
         sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
@@ -83,21 +78,15 @@ public class RecorderHelpers extends ContextWrapper implements
         AppGlobals.saveLastRecordingFilePath(path);
     }
 
-    void startRecording(int time, String fileName, int splitDuration) {
-        if (fileName == null) {
-            fileName = getTimeStamp();
-        }
-
+    void startRecording(int time, int splitDuration) {
         if (splitDuration == 0 && time < FIFTEEN_MINUTES) {
-            startRecording(time, fileName);
-            return;
+            startRecording(time);
         } else if (splitDuration == 0 && time > FIFTEEN_MINUTES) {
             mSplitDuration = FIFTEEN_MINUTES;
             float parts = (float) time / (float) mSplitDuration;
             mSplitFull = (int) parts;
             mSplitPartial = parts - mSplitFull;
-            startRecording(mSplitDuration, fileName);
-            return;
+            startRecording(mSplitDuration);
         }
     }
 
@@ -109,7 +98,7 @@ public class RecorderHelpers extends ContextWrapper implements
         mCompleteRepeats = (int) parts;
         mPartialRepeats = parts - mCompleteRepeats;
         mRecordingInstance = recordingInstance;
-        startRecording(mRecordingInstance, null);
+        startRecording(mRecordingInstance);
         mCompleteRepeats--;
     }
 
@@ -170,7 +159,6 @@ public class RecorderHelpers extends ContextWrapper implements
             case AppGlobals.STOPPED_AFTER_TIME:
                 if (mCompleteRepeats > 0) {
                     Intent intent = new Intent("com.byteshaft.startAlarm");
-                    intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
                     alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
@@ -180,7 +168,6 @@ public class RecorderHelpers extends ContextWrapper implements
                 } else if (mPartialRepeats != 0) {
                     int time = (int) (mRecordingInstance * mPartialRepeats);
                     Intent intent = new Intent("com.byteshaft.startAlarm");
-                    intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     intent.putExtra("RECORD_TIME", time);
                     pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -195,13 +182,13 @@ public class RecorderHelpers extends ContextWrapper implements
                 }
 
                 if (mSplitFull > 0) {
-                    startRecording(mSplitDuration, getFileNameForNextRecording(fileName));
+                    startRecording(mSplitDuration);
                     mSplitFull--;
                     return;
                 }
 
                 if (mSplitPartial > 0) {
-                    startRecording((int) (mSplitDuration * mSplitPartial), getFileNameForNextRecording(fileName));
+                    startRecording((int) (mSplitDuration * mSplitPartial));
                     mSplitPartial = 0;
                 }
                 break;
@@ -212,23 +199,6 @@ public class RecorderHelpers extends ContextWrapper implements
                 break;
             case AppGlobals.SERVER_DIED:
                 break;
-        }
-    }
-
-    private String getFileNameForNextRecording(String currentPath) {
-        File file = new File(currentPath);
-        String name = file.getName();
-        String nameNoExtension = name.substring(0, name.lastIndexOf('.'));
-        String[] title = nameNoExtension.split("-");
-
-        if (title.length == 1) {
-            return title[0] + "-" + "1";
-        } else if (title.length == 2) {
-            String baseName = title[0];
-            int iterator = Integer.valueOf(title[1]) + 1;
-            return baseName + "-" + iterator;
-        } else {
-            return null;
         }
     }
 }
