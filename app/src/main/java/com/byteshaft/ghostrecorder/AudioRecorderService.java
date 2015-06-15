@@ -70,8 +70,8 @@ public class AudioRecorderService extends Service {
         }
 
         int totalRemainingTime;
-        if (delay == 0) {
-            totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + recordInterval);
+        if (delay == 0 && recordInterval == 0) {
+            totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + recordTime);
             if (totalRemainingTime > 0) {
                 mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
             }
@@ -105,7 +105,7 @@ public class AudioRecorderService extends Service {
             switch (state) {
                 case TelephonyManager.CALL_STATE_RINGING:
                     if (CustomMediaRecorder.isRecording()) {
-                        mRecorderHelpers.stopRecording();
+                        mRecorderHelpers.stopRecording(true);
                         mStoppedOnCall = true;
                     }
                     break;
@@ -123,7 +123,7 @@ public class AudioRecorderService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (CustomMediaRecorder.isRecording()) {
-                mRecorderHelpers.stopRecording();
+                mRecorderHelpers.stopRecording(true);
                 mStoppedOnCall = true;
             }
         }
