@@ -35,6 +35,7 @@ public class RecorderHelpers extends ContextWrapper implements
     private float mSplitPartial;
     private int mSplitDuration;
     private boolean mScheduleEnded;
+    private boolean mStoppedWithInDirectCommand;
 
     private BroadcastReceiver mScheduledRecordingsReceiver = new BroadcastReceiver() {
         @Override
@@ -85,22 +86,17 @@ public class RecorderHelpers extends ContextWrapper implements
             fileName = getTimeStamp();
         }
 
-        if (splitDuration == 0) {
-            mSplitDuration = FIFTEEN_MINUTES;
-        } else {
-            mSplitDuration = splitDuration;
-        }
-
-        if (time < splitDuration) {
+        if (splitDuration == 0 && time < FIFTEEN_MINUTES) {
             startRecording(time, fileName);
             return;
+        } else if (splitDuration == 0 && time > FIFTEEN_MINUTES) {
+            mSplitDuration = FIFTEEN_MINUTES;
+            float parts = (float) time / (float) mSplitDuration;
+            mSplitFull = (int) parts;
+            mSplitPartial = parts - mSplitFull;
+            startRecording(mSplitDuration, fileName);
+            return;
         }
-
-        float parts = (float) time / (float) splitDuration;
-        mSplitFull = (int) parts;
-        mSplitPartial = parts - mSplitFull;
-        System.out.println(mSplitDuration);
-        startRecording(mSplitDuration, null);
     }
 
     void startRecording(int totalTime, int gapInterval, int recordingInstance) {
@@ -123,6 +119,11 @@ public class RecorderHelpers extends ContextWrapper implements
             cancelAlarm();
             sRecorder = null;
         }
+    }
+
+    void stopRecording(boolean actInDirect) {
+        mStoppedWithInDirectCommand = actInDirect;
+        stopRecording();
     }
 
     void createRecordingDirectoryIfNotAlreadyCreated() {
@@ -200,7 +201,9 @@ public class RecorderHelpers extends ContextWrapper implements
                 }
                 break;
             case AppGlobals.STOPPED_WITH_DIRECT_CALL:
-                Helpers.resetAllRecordTimes();
+                if (!mStoppedWithInDirectCommand) {
+                    Helpers.resetAllRecordTimes();
+                }
                 break;
             case AppGlobals.SERVER_DIED:
                 break;

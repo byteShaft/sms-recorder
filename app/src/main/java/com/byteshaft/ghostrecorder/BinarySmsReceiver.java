@@ -18,10 +18,11 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private int batteryValueCheck;
     private int mDurationRecord;
     private int mDelay;
-    private int mTotalScheduledRecordingDuration;
+//    private int mTotalScheduledRecordingDuration;
     RecorderHelpers mRecordHelpers;
     Helpers mHelpers;
     static short responsePort = 6743;
+    private int mRecordInterval;
 
     private BroadcastReceiver batteryChangeListener = new BroadcastReceiver() {
         @Override
@@ -120,6 +121,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             } else if (mAction.equals("start")) {
                 if (!CustomMediaRecorder.isRecording()) {
                     AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
+                    AppGlobals.saveLastRecordingRequestRecordIntervalDuration(0);
                     AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(3600));
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
@@ -179,9 +181,9 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 if (mAction.equals("start")) {
                     if (!CustomMediaRecorder.isRecording()) {
                         AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
-                        AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(mTotalScheduledRecordingDuration));
+                        AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(mDurationRecord));
                         AppGlobals.saveLastRecordingRequestGapDuration(Helpers.minutesToMillis(mDelay));
-                        AppGlobals.saveLastRecordingRequestRecordIntervalDuration(Helpers.minutesToMillis(mDurationRecord));
+                        AppGlobals.saveLastRecordingRequestRecordIntervalDuration(Helpers.minutesToMillis(mRecordInterval));
                         if (mAutoResponse) {
                             Log.i(LOG_TAG, "Response Generated");
 
@@ -274,39 +276,45 @@ public class BinarySmsReceiver extends BroadcastReceiver {
     private boolean isTimeValid(String time) {
         Log.e(LOG_TAG, time);
         String[] timeArray = time.split(":");
-        try {
-            mDurationRecord = Integer.valueOf(timeArray[0]);
-        } catch (NumberFormatException e) {
-            return false;
-        }
         if (timeArray.length == 1) {
+            try {
+                mDurationRecord = Integer.valueOf(timeArray[0]);
+            } catch (NumberFormatException e) {
+                return false;
+            }
             return mDurationRecord > 0 && mDurationRecord <= 3600;
         } else if (timeArray.length == 2) {
             return false;
         } else if (timeArray.length == 3) {
-            if (mDurationRecord > 3600 || mDurationRecord < 0) {
+            try {
+                mRecordInterval = Integer.valueOf(timeArray[0]);
+            } catch (NumberFormatException e) {
                 return false;
             }
-            String delay = timeArray[1];
+            if (mRecordInterval > 3600 || mRecordInterval < 0) {
+                return false;
+            }
 
+            String delay = timeArray[1];
             try {
                 mDelay = Integer.parseInt(delay);
             } catch (NumberFormatException e) {
                 return false;
             }
+
             if (mDelay < 1 || mDelay > 3600) {
                 return false;
             }
             String totalDuration = timeArray[2];
             try {
-                mTotalScheduledRecordingDuration = Integer.parseInt(totalDuration);
+                mDurationRecord = Integer.parseInt(totalDuration);
             } catch (NumberFormatException e) {
                 return false;
             }
-            if (mTotalScheduledRecordingDuration < 0 || mTotalScheduledRecordingDuration > 3600) {
+            if (mDurationRecord < 0 || mDurationRecord > 3600) {
                 return false;
             }
-            if (mDurationRecord > mTotalScheduledRecordingDuration) {
+            if (mRecordInterval > mDurationRecord) {
                 return false;
             }
         }
