@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 public class AudioRecorderService extends Service {
 
@@ -25,6 +26,11 @@ public class AudioRecorderService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (AppGlobals.getLastRecordingFilePath() != null && intent == null) {
+            RecordingDatabaseHelper helpers = new RecordingDatabaseHelper(getApplicationContext());
+            helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());
+            AppGlobals.saveLastRecordingFilePath(null);
+        }
         setInstance(this);
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
