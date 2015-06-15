@@ -9,6 +9,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class ConnectionChangeReceiver extends BroadcastReceiver {
+
     private UploadRecordingTaskHelpers mUploadHelpers;
     private UploadRecordingTask uploadRecordingTask;
     private Context mContext;

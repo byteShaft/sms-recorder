@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 public class DeleteDataReceiver extends BroadcastReceiver {
+
     private final String LOG_TAG = AppGlobals.getLogTag(getClass());
 
     @Override

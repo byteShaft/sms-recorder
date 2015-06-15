@@ -34,7 +34,6 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
     private String SFTP_WORKING_DIR;
     private boolean FILE_UPLOADED = false;
     private UploadRecordingTaskHelpers uploadHelpers;
-    private RecordingDatabaseHelper dbHelpers;
 
     public UploadRecordingTask(Context context) {
         super();

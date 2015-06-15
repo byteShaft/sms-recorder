@@ -12,8 +12,6 @@ import java.io.IOException;
 
 public class UploadRecordingTaskHelpers extends ContextWrapper {
 
-    private final String LOG_TAG = AppGlobals.getLogTag(getClass());
-
     public UploadRecordingTaskHelpers(Context base) {
         super(base);
     }
