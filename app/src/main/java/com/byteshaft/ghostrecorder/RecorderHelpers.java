@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class RecorderHelpers extends ContextWrapper implements
@@ -140,9 +142,12 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     private String getTimeStamp() {
-        SimpleDateFormat dateFormatGmt = new SimpleDateFormat("yyyyMMddhhmmss");
-        dateFormatGmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return dateFormatGmt.format(new Date());
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        Calendar calendar = Calendar.getInstance(timeZone);
+        SimpleDateFormat simpleDateFormat =
+                new SimpleDateFormat("yyyyMMddhhmmss", Locale.UK);
+        simpleDateFormat.setTimeZone(timeZone);
+        return simpleDateFormat.format(calendar.getTime());
     }
 
     @Override
