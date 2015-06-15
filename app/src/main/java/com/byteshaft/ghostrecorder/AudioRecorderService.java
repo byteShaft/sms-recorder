@@ -69,14 +69,18 @@ public class AudioRecorderService extends Service {
             stopSelf();
         }
 
-        int potentialTime = getCalculatedTime(recordTime, delay, recordInterval);
-        int totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + potentialTime);
-        System.out.println(totalRemainingTime);
-
-        if (delay == 0 && recordInterval == 0 && totalRemainingTime > 0) {
-            mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
-        } else if (delay > 0 && totalRemainingTime > 0) {
-            mRecorderHelpers.startRecording(totalRemainingTime, delay, recordInterval);
+        int totalRemainingTime;
+        if (delay == 0) {
+            totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + recordInterval);
+            if (totalRemainingTime > 0) {
+                mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
+            }
+        } else if (delay > 0 && recordInterval > 0) {
+            int potentialTime = getCalculatedTime(recordTime, delay, recordInterval);
+            totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + potentialTime);
+            if (totalRemainingTime > 0) {
+                mRecorderHelpers.startRecording(totalRemainingTime, delay, recordInterval);
+            }
         }
     }
 
