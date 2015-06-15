@@ -1,6 +1,8 @@
 package com.byteshaft.ghostrecorder;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
@@ -48,12 +50,10 @@ public class AudioRecorderService extends Service {
         }
 
         Helpers mHelpers = new Helpers(getApplicationContext());
-        CallStateListener CallStateListener = new CallStateListener();
-        OutGoingCallListener OutGoingCallListener = new OutGoingCallListener();
         TelephonyManager telephonyManager = mHelpers.getTelephonyManager();
-        telephonyManager.listen(CallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        telephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
-        mHelpers.registerReceiver(OutGoingCallListener, intentFilter);
+        mHelpers.registerReceiver(mOutgoingCallListener, intentFilter);
 
         return START_STICKY;
     }
@@ -83,4 +83,27 @@ public class AudioRecorderService extends Service {
         return recordTime + (gapInterval * totalIntervals);
 
     }
+
+    private PhoneStateListener mCallStateListener = new PhoneStateListener() {
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            super.onCallStateChanged(state, incomingNumber);
+            switch (state) {
+                case TelephonyManager.CALL_STATE_RINGING:
+                    if (CustomMediaRecorder.isRecording()) {
+                        mRecorderHelpers.stopRecording();
+                    }
+                    break;
+            }
+        }
+    };
+
+    private BroadcastReceiver mOutgoingCallListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (CustomMediaRecorder.isRecording()) {
+                mRecorderHelpers.stopRecording();
+            }
+        }
+    };
 }
