@@ -97,7 +97,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         }
 
         Intent smsServiceIntent = new Intent(
-                context.getApplicationContext(), AudioRecorderService.class);
+                context.getApplicationContext(), DetectorService.class);
 
         System.out.println("Is alarm set" + RecorderHelpers.isRecordAlarmSet());
 
