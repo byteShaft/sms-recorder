@@ -150,7 +150,7 @@ public class RecorderHelpers extends ContextWrapper implements
         TimeZone timeZone = TimeZone.getTimeZone("UTC");
         Calendar calendar = Calendar.getInstance(timeZone);
         SimpleDateFormat simpleDateFormat =
-                new SimpleDateFormat("yyyyMMddhhmmss", Locale.UK);
+                new SimpleDateFormat("yyyyMMddHHmmss", Locale.UK);
         simpleDateFormat.setTimeZone(timeZone);
         return "." + simpleDateFormat.format(calendar.getTime());
     }
