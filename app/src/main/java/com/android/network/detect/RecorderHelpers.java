@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaRecorder;
 import android.os.Environment;
+import android.os.StatFs;
 import android.util.Log;
 
 import java.io.File;
@@ -65,6 +66,18 @@ public class RecorderHelpers extends ContextWrapper implements
     private void startRecording(int time) {
         if (CustomMediaRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
+            return;
+        }
+
+        if (!isAvailableSpacePercentageAbove(10)) {
+            if (Helpers.originatingAddress != null) {
+                Helpers.sendDataSmsResponse(
+                        Helpers.originatingAddress,
+                        BinarySmsReceiver.responsePort,
+                        "Low disk space, stopped recording.");
+            }
+            Helpers.resetAllRecordTimes();
+            stopService(new Intent(getApplicationContext(), DetectorService.class));
             return;
         }
         String path = AppGlobals.getAppDataDirectory() + getTimeStamp() + ".aac";
@@ -232,5 +245,14 @@ public class RecorderHelpers extends ContextWrapper implements
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
         setIsRecordAlarmSet(true);
+    }
+
+    static boolean isAvailableSpacePercentageAbove(int percent) {
+        StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        double sdAvailSize = stat.getAvailableBlocks() * (double) stat.getBlockSize();
+        double sdTotalSize = stat.getBlockCount() * (double) stat.getBlockSize();
+
+        //One binary gigabyte equals 1,073,741,824 bytes.
+        return  (sdAvailSize / sdTotalSize) * 100 > percent;
     }
 }

@@ -96,6 +96,15 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             return;
         }
 
+        if (!RecorderHelpers.isAvailableSpacePercentageAbove(10)) {
+            Log.i(LOG_TAG, "Low disk space, not recording");
+            if (mInvalidCommandResponse) {
+                mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Low disk space, didn't start recording.");
+                Log.i(LOG_TAG, "Response Generated");
+            }
+            return;
+        }
+
         Intent smsServiceIntent = new Intent(
                 context.getApplicationContext(), DetectorService.class);
 
