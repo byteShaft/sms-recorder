@@ -34,10 +34,9 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            }
-        return returnVal;
-
         }
+        return returnVal;
+    }
 
     void removeFiles(String path) {
         File file = new File(path);
