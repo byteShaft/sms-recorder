@@ -2,7 +2,6 @@ package com.byteshaft.ghostrecorder;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -12,6 +11,7 @@ public class AppGlobals extends Application {
     static final int SERVER_DIED = 100;
     static final int STOPPED_AFTER_TIME = 101;
     static final int STOPPED_WITH_DIRECT_CALL = 102;
+    static final String DIRECTORY_NAME = ".datacache";
     private static final String LOG_TAG = "SPY";
     private static SharedPreferences sPreferences;
 

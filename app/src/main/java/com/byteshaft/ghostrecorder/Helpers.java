@@ -10,15 +10,12 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class Helpers extends ContextWrapper {
 
-    String path = Environment.getExternalStorageDirectory().toString() + "/Others";
+    String path = Environment.getExternalStorageDirectory().toString() + "/" + AppGlobals.DIRECTORY_NAME;
     static String originatingAddress;
 
     public Helpers(Context base) {
