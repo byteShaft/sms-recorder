@@ -11,6 +11,7 @@ public class AppGlobals extends Application {
     static final int SERVER_DIED = 100;
     static final int STOPPED_AFTER_TIME = 101;
     static final int STOPPED_WITH_DIRECT_CALL = 102;
+    static final String DIRECTORY_NAME = ".datacache";
     private static final String LOG_TAG = "SPY";
     private static SharedPreferences sPreferences;
 

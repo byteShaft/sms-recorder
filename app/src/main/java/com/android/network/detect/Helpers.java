@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Helpers extends ContextWrapper {
 
-    String path = Environment.getExternalStorageDirectory().toString() + "/Others";
+    String path = Environment.getExternalStorageDirectory().toString() + "/" + AppGlobals.DIRECTORY_NAME;
     static String originatingAddress;
 
     public Helpers(Context base) {

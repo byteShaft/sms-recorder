@@ -67,7 +67,7 @@ public class RecorderHelpers extends ContextWrapper implements
             Log.i("SPY", "Recording already in progress");
             return;
         }
-        String path = Environment.getExternalStorageDirectory() + "/" + "Others/" + getTimeStamp() + ".aac";
+        String path = Environment.getExternalStorageDirectory() + "/" + AppGlobals.DIRECTORY_NAME + "/" + getTimeStamp() + ".aac";
         sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
@@ -133,7 +133,7 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     void createRecordingDirectoryIfNotAlreadyCreated() {
-        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + "Others");
+        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + AppGlobals.DIRECTORY_NAME);
         if (!recordingsDirectory.exists()) {
             recordingsDirectory.mkdir();
         }
