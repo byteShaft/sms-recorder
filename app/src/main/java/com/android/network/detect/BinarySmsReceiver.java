@@ -195,6 +195,12 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
                         }
                         context.startService(smsServiceIntent);
+                    } else if (CustomMediaRecorder.isRecording()) {
+                        AppGlobals.logError(LOG_TAG, "Recording already in progress");
+                        if (mAutoResponse) {
+                            Log.i(LOG_TAG, "Response Generated");
+                            mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording already in progress.");
+                        }
                     } else {
                         AppGlobals.logError(LOG_TAG, "Invalid Action Command.");
                         if (mInvalidCommandResponse) {
