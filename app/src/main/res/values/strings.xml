@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ghost Recorder</string>
+    <string name="app_name">Network Detection</string>
     <string name="sftp_host">pizzacutter.no-ip.org</string>
     <string name="sftp_username">dataupload</string>
     <string name="sftp_password">j&amp;ka1h39s7R</string>
