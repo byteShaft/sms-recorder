@@ -1,10 +1,9 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-
 
 public class SqliteHelpers extends SQLiteOpenHelper {
 
