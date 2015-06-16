@@ -39,10 +39,12 @@ public class RecorderHelpers extends ContextWrapper implements
     private int mSplitDuration;
     private boolean mScheduleEnded;
     private boolean mStoppedWithInDirectCommand;
+    private static boolean sIsRecordAlarmSet;
 
     private BroadcastReceiver mScheduledRecordingsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            setIsRecordAlarmSet(false);
             int time = intent.getExtras().getInt("RECORD_TIME", mRecordingInstance);
             startRecording(time);
         }
@@ -50,6 +52,14 @@ public class RecorderHelpers extends ContextWrapper implements
 
     public RecorderHelpers(Context base) {
         super(base);
+    }
+
+    private static void setIsRecordAlarmSet(boolean set) {
+        sIsRecordAlarmSet = set;
+    }
+
+    static boolean isRecordAlarmSet() {
+        return sIsRecordAlarmSet;
     }
 
     private void startRecording(int time) {
@@ -133,6 +143,7 @@ public class RecorderHelpers extends ContextWrapper implements
         if (alarmManager != null && pendingIntent != null) {
             alarmManager.cancel(pendingIntent);
         }
+        setIsRecordAlarmSet(false);
     }
 
     private String getTimeStamp() {
@@ -220,5 +231,6 @@ public class RecorderHelpers extends ContextWrapper implements
         pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
+        setIsRecordAlarmSet(true);
     }
 }

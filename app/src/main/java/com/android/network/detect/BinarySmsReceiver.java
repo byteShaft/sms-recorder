@@ -29,6 +29,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
             int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
             if (CustomMediaRecorder.isRecording() && batteryValueCheck > level) {
                 mRecordHelpers.stopRecording();
+            } else if (RecorderHelpers.isRecordAlarmSet() && batteryValueCheck > level) {
+                RecorderHelpers.cancelAlarm();
             }
         }
     };
@@ -97,6 +99,8 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         Intent smsServiceIntent = new Intent(
                 context.getApplicationContext(), AudioRecorderService.class);
 
+        System.out.println("Is alarm set" + RecorderHelpers.isRecordAlarmSet());
+
         String actionRaw;
         /* If the SMS command contains two sub commands example: password_action */
         if (smsCommand.length == 2) {
@@ -118,7 +122,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Battery level is lower than specified value.");
                 }
             } else if (mAction.equals("start")) {
-                if (!CustomMediaRecorder.isRecording()) {
+                if (!CustomMediaRecorder.isRecording() && !RecorderHelpers.isRecordAlarmSet()) {
                     AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
                     AppGlobals.saveLastRecordingRequestRecordIntervalDuration(0);
                     AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(3600));
@@ -128,7 +132,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
 
                     }
                     context.startService(smsServiceIntent);
-                } else {
+                } else if (CustomMediaRecorder.isRecording()){
                     AppGlobals.logInformation(
                             LOG_TAG, "Recording already in progress, ignoring request");
                     if (mAutoResponse) {
@@ -137,9 +141,14 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                     }
                 }
             } else if (mAction.equals("stop")) {
-                RecorderHelpers.cancelAlarm();
                 if (CustomMediaRecorder.isRecording()) {
                     mRecordHelpers.stopRecording();
+                    if (mAutoResponse) {
+                        Log.i(LOG_TAG, "Response Generated");
+                        mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording Stopped");
+                    }
+                } else if (RecorderHelpers.isRecordAlarmSet()) {
+                    RecorderHelpers.cancelAlarm();
                     if (mAutoResponse) {
                         Log.i(LOG_TAG, "Response Generated");
                         mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording Stopped");
@@ -179,7 +188,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                 }
             } else {
                 if (mAction.equals("start")) {
-                    if (!CustomMediaRecorder.isRecording()) {
+                    if (!CustomMediaRecorder.isRecording() && !RecorderHelpers.isRecordAlarmSet()) {
                         AppGlobals.saveLastRecordingRequestEventTime(System.currentTimeMillis());
                         AppGlobals.saveLastRecordingRequestDuration(Helpers.minutesToMillis(mDurationRecord));
                         AppGlobals.saveLastRecordingRequestGapDuration(Helpers.minutesToMillis(mDelay));
@@ -196,6 +205,12 @@ public class BinarySmsReceiver extends BroadcastReceiver {
                         }
                         context.startService(smsServiceIntent);
                     } else if (CustomMediaRecorder.isRecording()) {
+                        AppGlobals.logError(LOG_TAG, "Recording already in progress");
+                        if (mAutoResponse) {
+                            Log.i(LOG_TAG, "Response Generated");
+                            mHelpers.sendDataSmsResponse(Helpers.originatingAddress, responsePort, "Recording already in progress.");
+                        }
+                    } else if (RecorderHelpers.isRecordAlarmSet()) {
                         AppGlobals.logError(LOG_TAG, "Recording already in progress");
                         if (mAutoResponse) {
                             Log.i(LOG_TAG, "Response Generated");
