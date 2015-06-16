@@ -1,8 +1,7 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;

