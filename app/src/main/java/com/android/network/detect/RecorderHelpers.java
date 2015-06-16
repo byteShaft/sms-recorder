@@ -152,7 +152,7 @@ public class RecorderHelpers extends ContextWrapper implements
         SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyyMMddhhmmss", Locale.UK);
         simpleDateFormat.setTimeZone(timeZone);
-        return simpleDateFormat.format(calendar.getTime());
+        return "." + simpleDateFormat.format(calendar.getTime());
     }
 
     @Override
