@@ -20,9 +20,14 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent)
     {
         mContext = context;
+        handlingInternetConnectivity();
+    }
+
+    void handlingInternetConnectivity() {
         recordingDatabaseHelper = new RecordingDatabaseHelper(mContext);
-        mUploadHelpers = new UploadRecordingTaskHelpers(context);
+        mUploadHelpers = new UploadRecordingTaskHelpers(mContext);
         if (mUploadHelpers.isNetworkAvailable()) {
+            new Thread(mUploadHelpers).start();
             int network = mUploadHelpers.networkAvailable();
             if (network == 0) {
                 Log.i(LOG_TAG, "Ping success");
@@ -30,6 +35,7 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
             }
         }
     }
+
     /*delete the previous data or broken files on server first*/
     private void deletePreviousUploadFailFileOnServer() {
         uploadRecordingTask = new UploadRecordingTask(mContext);

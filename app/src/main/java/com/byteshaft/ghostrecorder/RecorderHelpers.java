@@ -150,11 +150,13 @@ public class RecorderHelpers extends ContextWrapper implements
         ArrayList<String> arrayList = new ArrayList<>(Arrays.asList(path));
         UploadRecordingTaskHelpers  uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
-        if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
+        if (uploadRecordingTaskHelpers.isNetworkAvailable()
+                && uploadRecordingTaskHelpers.networkAvailable() == 0) {
             new UploadRecordingTask(getApplicationContext()).execute(arrayList);
         } else {
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
                     (getApplicationContext());;
+
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, path);
         }
     }

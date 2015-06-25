@@ -15,6 +15,7 @@ public class AudioRecorderService extends Service {
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
     private boolean mStoppedOnCall;
+    ConnectionChangeReceiver connectionChangeReceiver;
 
     private void setInstance(AudioRecorderService service) {
         sInstance = service;
@@ -26,6 +27,7 @@ public class AudioRecorderService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         if (AppGlobals.getLastRecordingFilePath() != null && intent == null) {
             RecordingDatabaseHelper helpers = new RecordingDatabaseHelper(getApplicationContext());
             helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());

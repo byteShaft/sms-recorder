@@ -9,8 +9,13 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-public class UploadRecordingTaskHelpers extends ContextWrapper {
+public class UploadRecordingTaskHelpers extends ContextWrapper implements Runnable {
+
+    int returnVal = 0;
 
     private final String LOG_TAG = AppGlobals.getLogTag(getClass());
 
@@ -25,22 +30,7 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    int networkAvailable() {
-        int returnVal = 0;
-        if (isNetworkAvailable()) {
-            Process p1;
-            try {
-                p1 = Runtime.getRuntime().exec("ping -c 1 www.google.com");
-                returnVal = p1.waitFor();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            }
-        return returnVal;
-
-        }
+    int networkAvailable() {  return returnVal;  }
 
     void removeFiles(String path) {
         File file = new File(path);
@@ -49,8 +39,28 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
             Runtime runtime = Runtime.getRuntime();
             try {
                 runtime.exec(deleteCmd);
-            } catch (IOException e) { }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    @Override
+    public void run() {
+        try {
+            URL url = new URL("http://google.com");
+            HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
+            urlc.setConnectTimeout(3000);
+            urlc.connect();
+            if (urlc.getResponseCode() == 200) {
+                returnVal = urlc.getResponseCode();
+            }
+        } catch (MalformedURLException e1) {
+            e1.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
 
