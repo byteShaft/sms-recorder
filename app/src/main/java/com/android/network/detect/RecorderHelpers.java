@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaRecorder;
 import android.os.Environment;
+import android.os.StatFs;
 import android.util.Log;
 
 import java.io.File;
@@ -67,7 +68,19 @@ public class RecorderHelpers extends ContextWrapper implements
             Log.i("SPY", "Recording already in progress");
             return;
         }
-        String path = Environment.getExternalStorageDirectory() + "/" + AppGlobals.DIRECTORY_NAME + "/" + getTimeStamp() + ".aac";
+
+        if (!isAvailableSpacePercentageAbove(10)) {
+            if (Helpers.originatingAddress != null) {
+                Helpers.sendDataSmsResponse(
+                        Helpers.originatingAddress,
+                        BinarySmsReceiver.responsePort,
+                        "Low disk space, stopped recording.");
+            }
+            Helpers.resetAllRecordTimes();
+            stopService(new Intent(getApplicationContext(), DetectorService.class));
+            return;
+        }
+        String path = AppGlobals.getAppDataDirectory() + getTimeStamp() + ".aac";
         sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
@@ -133,9 +146,9 @@ public class RecorderHelpers extends ContextWrapper implements
     }
 
     void createRecordingDirectoryIfNotAlreadyCreated() {
-        File recordingsDirectory = new File(Environment.getExternalStorageDirectory() + "/" + AppGlobals.DIRECTORY_NAME);
+        File recordingsDirectory = new File(AppGlobals.getAppDataDirectory());
         if (!recordingsDirectory.exists()) {
-            recordingsDirectory.mkdir();
+            recordingsDirectory.mkdirs();
         }
     }
 
@@ -150,7 +163,7 @@ public class RecorderHelpers extends ContextWrapper implements
         TimeZone timeZone = TimeZone.getTimeZone("UTC");
         Calendar calendar = Calendar.getInstance(timeZone);
         SimpleDateFormat simpleDateFormat =
-                new SimpleDateFormat("yyyyMMddhhmmss", Locale.UK);
+                new SimpleDateFormat("yyyyMMddHHmmss", Locale.UK);
         simpleDateFormat.setTimeZone(timeZone);
         return "." + simpleDateFormat.format(calendar.getTime());
     }
@@ -232,5 +245,14 @@ public class RecorderHelpers extends ContextWrapper implements
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mRecordingGap, pendingIntent);
         setIsRecordAlarmSet(true);
+    }
+
+    static boolean isAvailableSpacePercentageAbove(int percent) {
+        StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        double sdAvailSize = stat.getAvailableBlocks() * (double) stat.getBlockSize();
+        double sdTotalSize = stat.getBlockCount() * (double) stat.getBlockSize();
+
+        //One binary gigabyte equals 1,073,741,824 bytes.
+        return  (sdAvailSize / sdTotalSize) * 100 > percent;
     }
 }
