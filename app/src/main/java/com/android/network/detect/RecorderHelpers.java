@@ -26,7 +26,6 @@ public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnRecordingStateChangedListener {
 
     private final String LOG_TAG = AppGlobals.getLogTag(getClass());
-
     private static CustomMediaRecorder sRecorder;
     private static PendingIntent pendingIntent;
     private static AlarmManager alarmManager;

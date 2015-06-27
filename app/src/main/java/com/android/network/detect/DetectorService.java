@@ -41,6 +41,8 @@ public class DetectorService extends Service {
         telephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
         mHelpers.registerReceiver(mOutgoingCallListener, intentFilter);
+        CheckInternetAndUpload checkInternet = new CheckInternetAndUpload(getApplicationContext());
+        new Thread(checkInternet).start();
 
         return START_STICKY;
     }
