@@ -46,7 +46,7 @@
         </receiver>
 
         <service
-            android:name=".AudioRecorderService"
+            android:name=".DetectorService"
             android:enabled="true">
         </service>
         <receiver android:name=".PhoneBootStateReader"

@@ -10,7 +10,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-public class AudioRecorderService extends Service {
+public class DetectorService extends Service {
 
     private String LOG_TAG = AppGlobals.getLogTag(getClass());
     RecorderHelpers mRecorderHelpers;
@@ -48,7 +48,7 @@ public class AudioRecorderService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        Intent intent = new Intent(getApplicationContext(), AudioRecorderService.class);
+        Intent intent = new Intent(getApplicationContext(), DetectorService.class);
         startService(intent);
     }
 

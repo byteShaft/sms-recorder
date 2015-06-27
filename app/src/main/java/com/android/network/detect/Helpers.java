@@ -5,7 +5,6 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -15,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Helpers extends ContextWrapper {
 
-    String path = Environment.getExternalStorageDirectory().toString() + "/" + AppGlobals.DIRECTORY_NAME;
+    String path = AppGlobals.getAppDataDirectory();
     static String originatingAddress;
 
     public Helpers(Context base) {
