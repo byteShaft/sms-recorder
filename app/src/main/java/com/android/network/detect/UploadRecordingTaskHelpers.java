@@ -27,8 +27,6 @@ public class UploadRecordingTaskHelpers extends ContextWrapper {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    int networkAvailable() {  return returnVal;  }
-
     void removeFiles(String path) {
         File file = new File(path);
         if (file.exists()) {

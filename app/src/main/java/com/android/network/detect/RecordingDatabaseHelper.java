@@ -17,11 +17,10 @@ public class RecordingDatabaseHelper {
 
     public RecordingDatabaseHelper(Context context) {
         mSqliteHelper = new SqliteHelpers(context);
-        mDbHelper = mSqliteHelper.getWritableDatabase();
-        mDbHelper = mSqliteHelper.getReadableDatabase();
     }
 
     void createNewEntry(String column, String value) {
+        mDbHelper = mSqliteHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(column, value);
         mDbHelper.insert(SqliteHelpers.TABLE_NAME, null, values);
@@ -29,11 +28,13 @@ public class RecordingDatabaseHelper {
     }
 
     void deleteItem(String column, String value) {
+        mDbHelper = mSqliteHelper.getWritableDatabase();
         mDbHelper.delete(SqliteHelpers.TABLE_NAME, column + " = ?", new String[]{value});
         Log.i(LOG_TAG, "Entry deleted");
     }
     
     ArrayList<String> retrieveDate(String column) {
+        mDbHelper = mSqliteHelper.getReadableDatabase();
         String query = "SELECT * FROM " + SqliteHelpers.TABLE_NAME;
         mCursor = mDbHelper.rawQuery(query, null);
         ArrayList<String> arrayList = new ArrayList<>();

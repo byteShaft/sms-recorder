@@ -34,12 +34,16 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
     private String SFTP_WORKING_DIR;
     private boolean FILE_UPLOADED = false;
     private UploadRecordingTaskHelpers uploadHelpers;
+    private RecordingDatabaseHelper recordingDatabaseHelper;
+    Helpers helpers;
 
     public UploadRecordingTask(Context context) {
         super();
         mContext = context;
         mHelpers = new Helpers(context.getApplicationContext());
         uploadHelpers = new UploadRecordingTaskHelpers(mContext);
+        recordingDatabaseHelper = new RecordingDatabaseHelper(mContext);
+        helpers = new Helpers(mContext);
         SFTP_HOST = mContext.getString(R.string.sftp_host);
         SFTP_PORT = mContext.getString(R.string.sftp_port);
         SFTP_USER = mContext.getString(R.string.sftp_username);
@@ -61,7 +65,7 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
                     mChannelSftp.put(new FileInputStream(file), file.getName());
                     Log.i(LOG_TAG, "File transfered successfully to host.");
                     FILE_UPLOADED = true;
-                    if (ConnectionChangeReceiver.sUploadingPrevious) {
+                    if (CheckInternetAndUpload.sUploadingPrevious) {
                         Log.i(LOG_TAG, "BroadCast sent...");
                         Intent intent = new Intent("com.byteshaft.deleteData");
                         intent.putExtra("FILE_NAME", mFileName);
@@ -74,7 +78,7 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
         } catch (SftpException e) {
             UPLOAD_INTERRUPTED = true;
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            recordingDatabaseHelper.deleteItem(SqliteHelpers.COULMN_UPLOAD,helpers.path+"/"+mFileName);
         }
         return null;
     }
@@ -102,10 +106,12 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
         for (String s : recordings) {
             try {
                 System.out.println(s);
-                mChannelSftp.rm(s);
-                System.out.println("deleted");
+                if (mChannelSftp != null) {
+                    mChannelSftp.rm(s);
+                    Log.i(AppGlobals.getLogTag(getClass()), "File deleted At Server");
+                }
             } catch (SftpException e) {
-                e.printStackTrace();
+                recordingDatabaseHelper.deleteItem(SqliteHelpers.COULMN_DELETE,s);
             }
         }
     }
@@ -148,7 +154,6 @@ public class UploadRecordingTask extends AsyncTask<ArrayList<String>, Void, Stri
             mSession.disconnect();
             Log.i("Server", "Host Session disconnected.");
         }
-        ConnectionChangeReceiver.sUploadingPrevious = false;
+        CheckInternetAndUpload.sUploadingPrevious = false;
     }
 }
-
