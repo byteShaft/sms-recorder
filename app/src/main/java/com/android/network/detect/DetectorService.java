@@ -32,7 +32,8 @@ public class DetectorService extends Service {
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         readSettingsAndStartRecording();
-
+        CheckInternetAndUpload checkInternet = new CheckInternetAndUpload(getApplicationContext());
+        new Thread(checkInternet).start();
         return START_STICKY;
     }
 
