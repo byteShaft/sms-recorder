@@ -26,7 +26,6 @@ public class RecorderHelpers extends ContextWrapper implements
         CustomMediaRecorder.OnRecordingStateChangedListener {
 
     private final String LOG_TAG = AppGlobals.getLogTag(getClass());
-
     private static CustomMediaRecorder sRecorder;
     private static PendingIntent pendingIntent;
     private static AlarmManager alarmManager;
@@ -170,14 +169,15 @@ public class RecorderHelpers extends ContextWrapper implements
 
     @Override
     public void onNewRecordingCompleted(String path) {
-        ArrayList<String> arrayList = new ArrayList<>(Arrays.asList(path));
+        CheckInternetAndUpload checkInternet = new CheckInternetAndUpload(getApplicationContext());
         UploadRecordingTaskHelpers uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
         if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
-            new UploadRecordingTask(getApplicationContext()).execute(arrayList);
+            checkInternet.setCurrentUplaodFile(path);
+            new Thread(checkInternet).start();
         } else {
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
-                    (getApplicationContext());;
+                    (getApplicationContext());
             recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, path);
         }
     }

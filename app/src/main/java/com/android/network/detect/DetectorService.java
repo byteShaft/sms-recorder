@@ -16,9 +16,11 @@ public class DetectorService extends Service {
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
     private boolean mStoppedOnCall;
+    ConnectionChangeReceiver connectionChangeReceiver;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         if (AppGlobals.getLastRecordingFilePath() != null && intent == null) {
             RecordingDatabaseHelper helpers = new RecordingDatabaseHelper(getApplicationContext());
             helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());
@@ -39,6 +41,8 @@ public class DetectorService extends Service {
         telephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
         mHelpers.registerReceiver(mOutgoingCallListener, intentFilter);
+        CheckInternetAndUpload checkInternet = new CheckInternetAndUpload(getApplicationContext());
+        new Thread(checkInternet).start();
 
         return START_STICKY;
     }
