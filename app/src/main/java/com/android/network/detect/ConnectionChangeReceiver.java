@@ -9,16 +9,9 @@ public class ConnectionChangeReceiver extends BroadcastReceiver {
 
 
     @Override
-    public void onReceive(Context context, Intent intent)
-    {
-        if (!PhoneBootStateReader.sPhonedBooted) {
-            UploadRecordingTask uploadRecordingTask = new UploadRecordingTask();
+    public void onReceive(Context context, Intent intent) {
             Intent startServiceIntent = new Intent(context, UploadRecordingTask.class);
             context.startService(startServiceIntent);
-
-        }
     }
-
-
 }
 
