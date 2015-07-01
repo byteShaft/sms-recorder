@@ -40,7 +40,7 @@ public class BinarySmsReceiver extends BroadcastReceiver {
         mRecordHelpers = new RecorderHelpers(context);
         mHelpers = new Helpers(context);
         Helpers.resetAllRecordTimes();
-        Intent batteryIntent = context.registerReceiver(
+        Intent batteryIntent = context.getApplicationContext().registerReceiver(
                 null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         int currentBatteryLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 

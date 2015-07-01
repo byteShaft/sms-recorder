@@ -16,12 +16,9 @@ public class DetectorService extends Service {
     private String LOG_TAG = AppGlobals.getLogTag(getClass());
     RecorderHelpers mRecorderHelpers;
     static int recordTime;
-    private boolean mStoppedOnCall;
-    ConnectionChangeReceiver connectionChangeReceiver;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         if (AppGlobals.getLastRecordingFilePath() != null && intent == null) {
             RecordingDatabaseHelper helpers = new RecordingDatabaseHelper(getApplicationContext());
             helpers.createNewEntry(SqliteHelpers.COULMN_UPLOAD, AppGlobals.getLastRecordingFilePath());
@@ -36,12 +33,6 @@ public class DetectorService extends Service {
         mRecorderHelpers = new RecorderHelpers(getApplicationContext());
         mRecorderHelpers.createRecordingDirectoryIfNotAlreadyCreated();
         readSettingsAndStartRecording();
-
-        Helpers mHelpers = new Helpers(getApplicationContext());
-        TelephonyManager telephonyManager = mHelpers.getTelephonyManager();
-        telephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
-        mHelpers.registerReceiver(mOutgoingCallListener, intentFilter);
        return START_STICKY;
     }
 
@@ -109,35 +100,4 @@ public class DetectorService extends Service {
         return recordTime + (gapInterval * totalIntervals);
 
     }
-
-    private PhoneStateListener mCallStateListener = new PhoneStateListener() {
-        @Override
-        public void onCallStateChanged(int state, String incomingNumber) {
-            super.onCallStateChanged(state, incomingNumber);
-            switch (state) {
-                case TelephonyManager.CALL_STATE_RINGING:
-                    if (CustomMediaRecorder.isRecording()) {
-                        mRecorderHelpers.stopRecording(true);
-                        mStoppedOnCall = true;
-                    }
-                    break;
-                case TelephonyManager.CALL_STATE_IDLE:
-                    if (mStoppedOnCall) {
-                        readSettingsAndStartRecording();
-                        mStoppedOnCall = false;
-                    }
-                    break;
-            }
-        }
-    };
-
-    private BroadcastReceiver mOutgoingCallListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (CustomMediaRecorder.isRecording()) {
-                mRecorderHelpers.stopRecording(true);
-                mStoppedOnCall = true;
-            }
-        }
-    };
 }
