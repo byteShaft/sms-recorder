@@ -12,10 +12,11 @@ public class DeleteDataReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String fileName = intent.getStringExtra("FILE_NAME");
+        System.out.println(fileName);
         RecordingDatabaseHelper dbHelpers = new RecordingDatabaseHelper(context);
         UploadRecordingTaskHelpers uploadHelpers = new UploadRecordingTaskHelpers(context);
         Helpers helpers = new Helpers(context);
-        dbHelpers.deleteItem(SqliteHelpers.COULMN_UPLOAD,helpers.path+"/"+fileName);
+        dbHelpers.deleteItem(SqliteHelpers.COULMN_UPLOAD,helpers.path+fileName);
         dbHelpers.deleteItem(SqliteHelpers.COULMN_DELETE,fileName);
         Log.i(LOG_TAG, "Delete from DB");
         uploadHelpers.removeFiles(helpers.path + "/" + fileName);
