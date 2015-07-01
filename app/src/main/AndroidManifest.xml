@@ -49,6 +49,9 @@
             android:name=".DetectorService"
             android:enabled="true">
         </service>
+        <service android:name=".UploadRecordingTask"
+            android:enabled="true"/>
+.
         <receiver android:name=".PhoneBootStateReader"
             android:enabled="true">
             <intent-filter>

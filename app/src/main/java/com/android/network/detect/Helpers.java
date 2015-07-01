@@ -5,11 +5,16 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Helpers extends ContextWrapper {
@@ -72,5 +77,20 @@ public class Helpers extends ContextWrapper {
         getSmsManager().sendDataMessage(
                 phoneNumber, null, port, smsResponse.getBytes(), null, null
         );
+    }
+
+    ArrayList<String> getAllFilesFromFolder() {
+        File files = new File(AppGlobals.getAppDataDirectory());
+        File[] list = files.listFiles();
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        int lists = files.listFiles().length;
+
+        for(int i=0; i < lists; i++){
+            if(list[i].isHidden()) {
+                arrayList.add(list[i].getAbsolutePath());
+            }
+        }
+        return arrayList;
     }
 }

@@ -29,8 +29,7 @@ public class RecordingDatabaseHelper {
 
     void deleteItem(String column, String value) {
         mDbHelper = mSqliteHelper.getWritableDatabase();
-        mDbHelper.delete(SqliteHelpers.TABLE_NAME, column + " = ?", new String[]{value});
-        Log.i(LOG_TAG, "Entry deleted");
+        mDbHelper.delete(SqliteHelpers.TABLE_NAME, column + "=?", new String[]{value});
     }
     
     ArrayList<String> retrieveDate(String column) {

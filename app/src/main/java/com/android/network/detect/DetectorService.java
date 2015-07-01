@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -41,10 +42,7 @@ public class DetectorService extends Service {
         telephonyManager.listen(mCallStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
         mHelpers.registerReceiver(mOutgoingCallListener, intentFilter);
-        CheckInternetAndUpload checkInternet = new CheckInternetAndUpload(getApplicationContext());
-        new Thread(checkInternet).start();
-
-        return START_STICKY;
+       return START_STICKY;
     }
 
     @Override
