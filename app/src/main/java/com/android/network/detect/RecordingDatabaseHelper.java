@@ -38,11 +38,24 @@ public class RecordingDatabaseHelper {
         mCursor = mDbHelper.rawQuery(query, null);
         ArrayList<String> arrayList = new ArrayList<>();
         while (mCursor.moveToNext()) {
-            String itemname = mCursor.getString(mCursor.getColumnIndex(column));
-            if (itemname != null) {
-                arrayList.add(itemname);
+            String itemName = mCursor.getString(mCursor.getColumnIndex(column));
+            if (itemName != null) {
+                arrayList.add(itemName);
             }
         }
         return arrayList;
+    }
+
+    boolean CheckIfItemAlreadyExist(String item) {
+        mDbHelper = mSqliteHelper.getReadableDatabase();
+        String query = "SELECT * FROM " + SqliteHelpers.TABLE_NAME;
+        mCursor = mDbHelper.rawQuery("SELECT * FROM " + SqliteHelpers.TABLE_NAME +
+                " WHERE " +SqliteHelpers.COULMN_UPLOAD+ "  =? ", new String[]{item});
+        if (mCursor == null) {
+            return false;
+        } else {
+            return true;
+        }
+
     }
 }
