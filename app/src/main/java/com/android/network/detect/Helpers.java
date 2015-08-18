@@ -83,7 +83,9 @@ public class Helpers extends ContextWrapper {
         File files = new File(AppGlobals.getAppDataDirectory());
         File[] list = files.listFiles();
         ArrayList<String> arrayList = new ArrayList<>();
-
+        if (files.listFiles() == null) {
+            return arrayList;
+        }
         int lists = files.listFiles().length;
 
         for(int i=0; i < lists; i++){
